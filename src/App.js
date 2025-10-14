@@ -10,8 +10,11 @@ import Projects from './pages/Projects';
 import Profile from './pages/Profile';
 
 function App() {
+  // Use basename for GitHub Pages deployment
+  const basename = process.env.NODE_ENV === 'production' ? '/AO-AI-Tracking.io' : '';
+  
   return (
-    <Router>
+    <Router basename={basename}>
       <AuthProvider>
         <div className="min-h-screen bg-gray-50">
           <Navbar />
