@@ -163,7 +163,7 @@ const Login = () => {
             <div>
               <p className="font-semibold text-blue-900 mb-1">Your Data is Secure</p>
               <p className="text-sm text-blue-700">
-                All account information is automatically saved to our secure Firestore database and protected by Google Cloud security.
+                All account information is automatically saved to our secure Firebase Realtime Database and protected by Google Cloud security.
               </p>
             </div>
           </div>

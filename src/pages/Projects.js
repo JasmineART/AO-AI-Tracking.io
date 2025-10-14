@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useAuth } from '../contexts/AuthContext';
-import { getDemoData, addProject, updateProject, deleteProject } from '../utils/demoData';
+import { getDemoData, addProject as addDemoProject, updateProject as updateDemoProject, deleteProject as deleteDemoProject } from '../utils/demoData';
+import { saveProjectToRealtimeDb, getUserProjectsFromRealtimeDb, updateProjectInRealtimeDb, deleteProjectFromRealtimeDb } from '../utils/realtimeDatabase';
 import { getAvailableDataSources } from '../utils/dataIntegration';
 
 const Projects = () => {
@@ -9,6 +10,7 @@ const Projects = () => {
   const [showAddModal, setShowAddModal] = useState(false);
   const [editingProject, setEditingProject] = useState(null);
   const [dataSources] = useState(getAvailableDataSources());
+  const [loading, setLoading] = useState(true);
   
   const [formData, setFormData] = useState({
     name: '',
@@ -22,13 +24,25 @@ const Projects = () => {
 
   useEffect(() => {
     loadProjects();
-  }, []);
+  }, [currentUser]);
 
-  const loadProjects = () => {
-    if (currentUser?.isDemo) {
-      const demoData = getDemoData();
-      setProjects(demoData.projects);
+  const loadProjects = async () => {
+    setLoading(true);
+    try {
+      if (currentUser?.isDemo) {
+        // Demo user - use localStorage
+        const demoData = getDemoData();
+        setProjects(demoData.projects);
+      } else if (currentUser) {
+        // Real user - use Firebase Realtime Database
+        const userProjects = await getUserProjectsFromRealtimeDb(currentUser.uid);
+        setProjects(userProjects || []);
+      }
+    } catch (error) {
+      console.error('Error loading projects:', error);
+      setProjects([]);
     }
+    setLoading(false);
   };
 
   const handleInputChange = (e) => {
@@ -36,17 +50,32 @@ const Projects = () => {
     setFormData(prev => ({ ...prev, [name]: value }));
   };
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
     
-    if (editingProject) {
-      updateProject(editingProject.id, formData);
-    } else {
-      addProject(formData);
+    try {
+      if (currentUser?.isDemo) {
+        // Demo user - use localStorage
+        if (editingProject) {
+          updateDemoProject(editingProject.id, formData);
+        } else {
+          addDemoProject(formData);
+        }
+      } else if (currentUser) {
+        // Real user - use Firebase Realtime Database
+        if (editingProject) {
+          await updateProjectInRealtimeDb(currentUser.uid, editingProject.id, formData);
+        } else {
+          await saveProjectToRealtimeDb(currentUser.uid, formData);
+        }
+      }
+      
+      await loadProjects();
+      resetForm();
+    } catch (error) {
+      console.error('Error saving project:', error);
+      alert('Failed to save project. Please try again.');
     }
-    
-    loadProjects();
-    resetForm();
   };
 
   const handleEdit = (project) => {
@@ -63,10 +92,19 @@ const Projects = () => {
     setShowAddModal(true);
   };
 
-  const handleDelete = (projectId) => {
+  const handleDelete = async (projectId) => {
     if (window.confirm('Are you sure you want to delete this project?')) {
-      deleteProject(projectId);
-      loadProjects();
+      try {
+        if (currentUser?.isDemo) {
+          deleteDemoProject(projectId);
+        } else if (currentUser) {
+          await deleteProjectFromRealtimeDb(currentUser.uid, projectId);
+        }
+        await loadProjects();
+      } catch (error) {
+        console.error('Error deleting project:', error);
+        alert('Failed to delete project. Please try again.');
+      }
     }
   };
 

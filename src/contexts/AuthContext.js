@@ -6,8 +6,8 @@ import {
   signOut,
   onAuthStateChanged 
 } from 'firebase/auth';
-import { doc, setDoc, getDoc, serverTimestamp } from 'firebase/firestore';
-import { auth, googleProvider, githubProvider, db } from '../firebase';
+import { auth, googleProvider, githubProvider } from '../firebase';
+import { saveUserToRealtimeDb } from '../utils/realtimeDatabase';
 
 const AuthContext = createContext();
 
@@ -19,42 +19,12 @@ export const AuthProvider = ({ children }) => {
   const [currentUser, setCurrentUser] = useState(null);
   const [loading, setLoading] = useState(true);
 
-  // Save user data to Firestore
+  // Save user data to Realtime Database
   const saveUserToDatabase = async (user) => {
     if (!user) return;
 
     try {
-      const userRef = doc(db, 'users', user.uid);
-      const userSnap = await getDoc(userRef);
-
-      // Only create/update if user doesn't exist or needs updating
-      const userData = {
-        uid: user.uid,
-        email: user.email,
-        displayName: user.displayName || user.email?.split('@')[0],
-        photoURL: user.photoURL || null,
-        lastLogin: serverTimestamp(),
-      };
-
-      if (!userSnap.exists()) {
-        // New user - add createdAt timestamp
-        await setDoc(userRef, {
-          ...userData,
-          createdAt: serverTimestamp(),
-          projects: [],
-          preferences: {
-            theme: 'light',
-            notifications: true
-          }
-        });
-        console.log('✅ New user created in database:', user.email);
-      } else {
-        // Existing user - update last login
-        await setDoc(userRef, userData, { merge: true });
-        console.log('✅ User login updated in database:', user.email);
-      }
-
-      return userData;
+      await saveUserToRealtimeDb(user);
     } catch (error) {
       console.error('❌ Error saving user to database:', error);
       throw error;

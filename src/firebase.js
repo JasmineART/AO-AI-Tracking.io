@@ -1,6 +1,7 @@
 import { initializeApp } from 'firebase/app';
 import { getAuth, GoogleAuthProvider, GithubAuthProvider } from 'firebase/auth';
 import { getFirestore } from 'firebase/firestore';
+import { getDatabase } from 'firebase/database';
 import { getAnalytics } from 'firebase/analytics';
 
 // Your web app's Firebase configuration
@@ -8,6 +9,7 @@ import { getAnalytics } from 'firebase/analytics';
 const firebaseConfig = {
   apiKey: "AIzaSyCzyBwFrRvqoMcspj7lIYpiR3nRa7Bcy00",
   authDomain: "oa-ai-dash.firebaseapp.com",
+  databaseURL: "https://oa-ai-dash-default-rtdb.firebaseio.com",
   projectId: "oa-ai-dash",
   storageBucket: "oa-ai-dash.firebasestorage.app",
   messagingSenderId: "1036320496271",
@@ -28,5 +30,8 @@ export const githubProvider = new GithubAuthProvider();
 
 // Initialize Cloud Firestore and get a reference to the service
 export const db = getFirestore(app);
+
+// Initialize Realtime Database and get a reference to the service
+export const realtimeDb = getDatabase(app);
 
 export default app;

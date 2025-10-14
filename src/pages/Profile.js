@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../contexts/AuthContext';
-import { getUserData, updateUserProfile } from '../utils/userDatabase';
+import { getUserFromRealtimeDb, updateUserInRealtimeDb, listenToUserData } from '../utils/realtimeDatabase';
 
 const Profile = () => {
   const { currentUser, logout } = useAuth();
@@ -21,7 +21,7 @@ const Profile = () => {
     const fetchUserData = async () => {
       if (currentUser && !currentUser.isDemo) {
         try {
-          const data = await getUserData(currentUser.uid);
+          const data = await getUserFromRealtimeDb(currentUser.uid);
           setUserData(data);
           setFormData({
             displayName: data?.displayName || currentUser.displayName || '',
@@ -43,8 +43,8 @@ const Profile = () => {
   const handleUpdateProfile = async (e) => {
     e.preventDefault();
     try {
-      await updateUserProfile(currentUser.uid, formData);
-      const updatedData = await getUserData(currentUser.uid);
+      await updateUserInRealtimeDb(currentUser.uid, formData);
+      const updatedData = await getUserFromRealtimeDb(currentUser.uid);
       setUserData(updatedData);
       setEditMode(false);
       alert('Profile updated successfully!');
@@ -176,8 +176,8 @@ const Profile = () => {
               <div className="flex items-center gap-3 mb-4">
                 <span className="text-3xl">✅</span>
                 <div>
-                  <p className="font-bold text-green-800">User Data Saved in Firestore</p>
-                  <p className="text-sm text-green-600">Your profile is securely stored in Google Cloud</p>
+                  <p className="font-bold text-green-800">User Data Saved in Realtime Database</p>
+                  <p className="text-sm text-green-600">Your profile is securely stored in Firebase Realtime Database</p>
                 </div>
               </div>
               
@@ -185,13 +185,13 @@ const Profile = () => {
                 <div className="bg-white/80 rounded-xl p-4">
                   <p className="text-xs text-gray-500 mb-1">Created At</p>
                   <p className="font-mono text-sm text-gray-800">
-                    {userData.createdAt?.toDate?.()?.toLocaleString() || 'Just now'}
+                    {userData.createdAt ? new Date(userData.createdAt).toLocaleString() : 'Just now'}
                   </p>
                 </div>
                 <div className="bg-white/80 rounded-xl p-4">
                   <p className="text-xs text-gray-500 mb-1">Last Login</p>
                   <p className="font-mono text-sm text-gray-800">
-                    {userData.lastLogin?.toDate?.()?.toLocaleString() || 'Just now'}
+                    {userData.lastLogin ? new Date(userData.lastLogin).toLocaleString() : 'Just now'}
                   </p>
                 </div>
                 <div className="bg-white/80 rounded-xl p-4">
@@ -213,7 +213,7 @@ const Profile = () => {
               <p className="font-semibold mb-2">🔐 Your data is protected by:</p>
               <ul className="list-disc list-inside space-y-1 ml-2">
                 <li>Firebase Authentication (Google Security)</li>
-                <li>Firestore Database with security rules</li>
+                <li>Realtime Database with security rules</li>
                 <li>Encrypted data transmission (HTTPS)</li>
                 <li>Regular automated backups</li>
               </ul>
