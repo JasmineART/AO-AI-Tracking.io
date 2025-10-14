@@ -1688,5 +1688,7 @@ const App = () => {
     );
 };
 
+
+// For compatibility with import in index.js
 export default App;
 
