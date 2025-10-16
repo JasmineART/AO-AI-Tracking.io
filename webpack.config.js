@@ -40,7 +40,7 @@ module.exports = {
       template: './index.html',
     }),
     new webpack.DefinePlugin({
-      'process.env.NODE_ENV': JSON.stringify(process.env.NODE_ENV || 'development'),
+      'process.env.NODE_ENV': JSON.stringify(process.env.NODE_ENV || 'production'),
       'process.env.REACT_APP_FIREBASE_API_KEY': JSON.stringify(process.env.REACT_APP_FIREBASE_API_KEY || 'AIzaSyCzyBwFrRvqoMcspj7lIYpiR3nRa7Bcy00'),
       'process.env.REACT_APP_FIREBASE_AUTH_DOMAIN': JSON.stringify(process.env.REACT_APP_FIREBASE_AUTH_DOMAIN || 'oa-ai-dash.firebaseapp.com'),
       'process.env.REACT_APP_FIREBASE_DATABASE_URL': JSON.stringify(process.env.REACT_APP_FIREBASE_DATABASE_URL || 'https://oa-ai-dash-default-rtdb.firebaseio.com'),
@@ -51,6 +51,9 @@ module.exports = {
       'process.env.REACT_APP_FIREBASE_MEASUREMENT_ID': JSON.stringify(process.env.REACT_APP_FIREBASE_MEASUREMENT_ID || 'G-GKETS43FTH'),
       'process.env.REACT_APP_RATE_LIMIT_MAX_ATTEMPTS': JSON.stringify(process.env.REACT_APP_RATE_LIMIT_MAX_ATTEMPTS || '5'),
       'process.env.REACT_APP_RATE_LIMIT_WINDOW_MS': JSON.stringify(process.env.REACT_APP_RATE_LIMIT_WINDOW_MS || '900000'),
+      'process.env.REACT_APP_MAX_LOGIN_ATTEMPTS': JSON.stringify(process.env.REACT_APP_MAX_LOGIN_ATTEMPTS || '5'),
+      'process.env.REACT_APP_LOGIN_TIMEOUT_MINUTES': JSON.stringify(process.env.REACT_APP_LOGIN_TIMEOUT_MINUTES || '15'),
+      'process.env.REACT_APP_ENABLE_ANALYTICS': JSON.stringify(process.env.REACT_APP_ENABLE_ANALYTICS || 'false'),
     }),
     // Copy .nojekyll file for GitHub Pages
     {
