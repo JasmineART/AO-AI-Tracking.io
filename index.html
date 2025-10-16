@@ -11,11 +11,9 @@
     <meta http-equiv="X-Content-Type-Options" content="nosniff" />
     <meta name="referrer" content="strict-origin-when-cross-origin" />
     
-    <!-- Content Security Policy -->
-    <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'unsafe-inline' 'unsafe-eval' https://www.googletagmanager.com https://www.google-analytics.com; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' https://fonts.gstatic.com data:; img-src 'self' data: https: blob:; connect-src 'self' https://*.firebaseio.com https://*.googleapis.com https://www.google-analytics.com wss://*.firebaseio.com; frame-src 'self' https://*.firebaseapp.com; object-src 'none'; base-uri 'self'; form-action 'self'; frame-ancestors 'none'; upgrade-insecure-requests;">
-    
-    <!-- Permissions Policy -->
-    <meta http-equiv="Permissions-Policy" content="geolocation=(), microphone=(), camera=()" />
+    <!-- Note: CSP headers should be delivered via HTTP headers, not meta tags for GitHub Pages -->
+    <!-- GitHub Pages will handle security headers automatically -->
+    <!-- frame-ancestors directive is ignored in meta tags and should only be in HTTP headers -->
     
     <!-- GitHub Pages SPA redirect script -->
     <script type="text/javascript">

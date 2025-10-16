@@ -40,16 +40,17 @@ module.exports = {
       template: './index.html',
     }),
     new webpack.DefinePlugin({
-      __app_id: JSON.stringify('oa-sol-default-app'),
-      __firebase_config: JSON.stringify(JSON.stringify({
-        apiKey: "AIzaSyDemoKey123456789",
-        authDomain: "demo-project.firebaseapp.com",
-        projectId: "demo-project",
-        storageBucket: "demo-project.appspot.com",
-        messagingSenderId: "123456789",
-        appId: "1:123456789:web:abcdef123456"
-      })),
-      __initial_auth_token: JSON.stringify(null),
+      'process.env.NODE_ENV': JSON.stringify(process.env.NODE_ENV || 'development'),
+      'process.env.REACT_APP_FIREBASE_API_KEY': JSON.stringify(process.env.REACT_APP_FIREBASE_API_KEY || 'AIzaSyCzyBwFrRvqoMcspj7lIYpiR3nRa7Bcy00'),
+      'process.env.REACT_APP_FIREBASE_AUTH_DOMAIN': JSON.stringify(process.env.REACT_APP_FIREBASE_AUTH_DOMAIN || 'oa-ai-dash.firebaseapp.com'),
+      'process.env.REACT_APP_FIREBASE_DATABASE_URL': JSON.stringify(process.env.REACT_APP_FIREBASE_DATABASE_URL || 'https://oa-ai-dash-default-rtdb.firebaseio.com'),
+      'process.env.REACT_APP_FIREBASE_PROJECT_ID': JSON.stringify(process.env.REACT_APP_FIREBASE_PROJECT_ID || 'oa-ai-dash'),
+      'process.env.REACT_APP_FIREBASE_STORAGE_BUCKET': JSON.stringify(process.env.REACT_APP_FIREBASE_STORAGE_BUCKET || 'oa-ai-dash.firebasestorage.app'),
+      'process.env.REACT_APP_FIREBASE_MESSAGING_SENDER_ID': JSON.stringify(process.env.REACT_APP_FIREBASE_MESSAGING_SENDER_ID || '1036320496271'),
+      'process.env.REACT_APP_FIREBASE_APP_ID': JSON.stringify(process.env.REACT_APP_FIREBASE_APP_ID || '1:1036320496271:web:ef72456abd7bcf3f02aefa'),
+      'process.env.REACT_APP_FIREBASE_MEASUREMENT_ID': JSON.stringify(process.env.REACT_APP_FIREBASE_MEASUREMENT_ID || 'G-GKETS43FTH'),
+      'process.env.REACT_APP_RATE_LIMIT_MAX_ATTEMPTS': JSON.stringify(process.env.REACT_APP_RATE_LIMIT_MAX_ATTEMPTS || '5'),
+      'process.env.REACT_APP_RATE_LIMIT_WINDOW_MS': JSON.stringify(process.env.REACT_APP_RATE_LIMIT_WINDOW_MS || '900000'),
     }),
     // Copy .nojekyll file for GitHub Pages
     {
