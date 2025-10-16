@@ -75,5 +75,32 @@ module.exports = {
     port: 3000,
     open: true,
     historyApiFallback: true,
+    headers: {
+      // Content Security Policy
+      'Content-Security-Policy': [
+        "default-src 'self'",
+        "script-src 'self' 'unsafe-inline' 'unsafe-eval' https://www.googletagmanager.com https://www.google-analytics.com",
+        "style-src 'self' 'unsafe-inline' https://fonts.googleapis.com",
+        "font-src 'self' https://fonts.gstatic.com data:",
+        "img-src 'self' data: https: blob:",
+        "connect-src 'self' https://*.firebaseio.com https://*.googleapis.com https://www.google-analytics.com wss://*.firebaseio.com",
+        "frame-src 'self' https://*.firebaseapp.com",
+        "object-src 'none'",
+        "base-uri 'self'",
+        "form-action 'self'",
+        "frame-ancestors 'none'",
+        "upgrade-insecure-requests"
+      ].join('; '),
+      
+      // Security Headers
+      'X-Content-Type-Options': 'nosniff',
+      'X-Frame-Options': 'DENY',
+      'X-XSS-Protection': '1; mode=block',
+      'Referrer-Policy': 'strict-origin-when-cross-origin',
+      'Permissions-Policy': 'geolocation=(), microphone=(), camera=()',
+      
+      // HTTPS Enforcement (in production)
+      'Strict-Transport-Security': 'max-age=31536000; includeSubDomains; preload'
+    }
   },
 };

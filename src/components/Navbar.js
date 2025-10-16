@@ -9,9 +9,7 @@ const Navbar = () => {
 
   const handleLogout = async () => {
     try {
-      if (currentUser?.isDemo) {
-        localStorage.removeItem('demoUser');
-      }
+      // AuthContext logout() now handles all cleanup including demo state
       await logout();
       navigate('/');
     } catch (error) {

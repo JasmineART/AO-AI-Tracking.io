@@ -2,6 +2,11 @@ import React, { useState, useEffect } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { useAuth } from '../contexts/AuthContext';
 import { initializeDemoData } from '../utils/demoData';
+import { 
+  validateAndSanitize, 
+  createLoginRateLimiter,
+  isValidEmail 
+} from '../utils/security';
 
 const Login = () => {
   const [email, setEmail] = useState('');
@@ -9,10 +14,12 @@ const Login = () => {
   const [isSignUp, setIsSignUp] = useState(false);
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
+  const [rateLimitError, setRateLimitError] = useState('');
   
   const { signInWithGoogle, signInWithGithub, signInWithEmail, signUpWithEmail, demoLogin } = useAuth();
   const navigate = useNavigate();
   const location = useLocation();
+  const loginRateLimiter = createLoginRateLimiter();
 
   useEffect(() => {
     // Check if demo mode is requested
@@ -21,6 +28,16 @@ const Login = () => {
       handleDemoLogin();
     }
   }, [location]);
+
+  const checkRateLimit = () => {
+    if (!loginRateLimiter.isAllowed()) {
+      const timeLeft = Math.ceil(loginRateLimiter.getTimeUntilReset() / 60000);
+      setRateLimitError(`Too many login attempts. Please try again in ${timeLeft} minute${timeLeft > 1 ? 's' : ''}.`);
+      return false;
+    }
+    setRateLimitError('');
+    return true;
+  };
 
   const handleDemoLogin = async () => {
     try {
@@ -37,12 +54,16 @@ const Login = () => {
   };
 
   const handleGoogleLogin = async () => {
+    if (!checkRateLimit()) return;
+    
     try {
       setLoading(true);
       setError('');
       await signInWithGoogle();
+      loginRateLimiter.reset(); // Reset on successful login
       navigate('/dashboard');
     } catch (err) {
+      loginRateLimiter.recordAttempt();
       setError('Failed to sign in with Google: ' + err.message);
     } finally {
       setLoading(false);
@@ -50,12 +71,16 @@ const Login = () => {
   };
 
   const handleGithubLogin = async () => {
+    if (!checkRateLimit()) return;
+    
     try {
       setLoading(true);
       setError('');
       await signInWithGithub();
+      loginRateLimiter.reset(); // Reset on successful login
       navigate('/dashboard');
     } catch (err) {
+      loginRateLimiter.recordAttempt();
       setError('Failed to sign in with GitHub: ' + err.message);
     } finally {
       setLoading(false);
@@ -64,18 +89,46 @@ const Login = () => {
 
   const handleEmailSubmit = async (e) => {
     e.preventDefault();
+    
+    if (!checkRateLimit()) return;
+    
     try {
       setLoading(true);
       setError('');
       
-      if (isSignUp) {
-        await signUpWithEmail(email, password);
-      } else {
-        await signInWithEmail(email, password);
+      // Validate email
+      const emailValidation = validateAndSanitize(email, {
+        type: 'email',
+        required: true,
+        maxLength: 254
+      });
+      
+      if (!emailValidation.valid) {
+        setError(emailValidation.error);
+        setLoading(false);
+        return;
       }
       
+      // Validate password
+      if (!password || password.length < 6) {
+        setError('Password must be at least 6 characters long');
+        setLoading(false);
+        return;
+      }
+      
+      // Sanitize email
+      const sanitizedEmail = emailValidation.sanitized;
+      
+      if (isSignUp) {
+        await signUpWithEmail(sanitizedEmail, password);
+      } else {
+        await signInWithEmail(sanitizedEmail, password);
+      }
+      
+      loginRateLimiter.reset(); // Reset on successful login
       navigate('/dashboard');
     } catch (err) {
+      loginRateLimiter.recordAttempt();
       setError(err.message);
     } finally {
       setLoading(false);
@@ -107,6 +160,12 @@ const Login = () => {
         {error && (
           <div className="bg-red-50 border-l-4 border-red-500 text-red-700 px-4 py-3 rounded-lg mb-4 animate-fadeInDown shadow-md">
             <p className="font-medium">⚠️ {error}</p>
+          </div>
+        )}
+
+        {rateLimitError && (
+          <div className="bg-orange-50 border-l-4 border-orange-500 text-orange-700 px-4 py-3 rounded-lg mb-4 animate-fadeInDown shadow-md">
+            <p className="font-medium">🔒 {rateLimitError}</p>
           </div>
         )}
 

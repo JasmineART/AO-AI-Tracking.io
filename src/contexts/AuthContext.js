@@ -79,8 +79,28 @@ export const AuthProvider = ({ children }) => {
     }
   };
 
-  const logout = () => {
-    return signOut(auth);
+  const logout = async () => {
+    // If the current user is a demo user we only need to clear local state
+    if (currentUser && currentUser.isDemo) {
+      try {
+        localStorage.removeItem('demoUser');
+        localStorage.removeItem('demoData'); // Clear all demo data
+      } catch (err) {
+        console.warn('Could not remove demo data from localStorage:', err);
+      }
+      setCurrentUser(null);
+      return Promise.resolve();
+    }
+
+    // Otherwise perform a normal Firebase sign out and clear local state
+    try {
+      await signOut(auth);
+      setCurrentUser(null);
+      return Promise.resolve();
+    } catch (error) {
+      console.error('\u274c Error during sign out:', error);
+      throw error;
+    }
   };
 
   // Demo login function
