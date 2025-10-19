@@ -9,7 +9,7 @@ export const validators = {
   /**
    * Validate project data structure
    */
-  validateProject(project) {
+  validateProject(project, isNew = false) {
     const errors = [];
 
     if (!project) {
@@ -18,11 +18,14 @@ export const validators = {
     }
 
     // Required fields
-    if (!project.id) errors.push('Project ID is required');
-    if (!project.name || typeof project.name !== 'string') {
-      errors.push('Project name is required and must be a string');
+    // ID and userId are not required for new projects (they'll be added by the save function)
+    if (!isNew && !project.id) {
+      errors.push('Project ID is required for existing projects');
     }
-    if (!project.userId) errors.push('User ID is required');
+    
+    if (!project.name || typeof project.name !== 'string' || project.name.trim() === '') {
+      errors.push('Project name is required and must be a non-empty string');
+    }
 
     // Optional but validated fields
     if (project.readinessScore !== undefined) {
@@ -32,12 +35,17 @@ export const validators = {
       }
     }
 
-    if (project.status && !['Active', 'In Progress', 'Completed', 'Deployed', 'Planning'].includes(project.status)) {
-      errors.push('Invalid project status');
+    // Allow all common status values
+    const validStatuses = ['Active', 'In Progress', 'Completed', 'Deployed', 'Planning', 'On Hold'];
+    if (project.status && !validStatuses.includes(project.status)) {
+      errors.push(`Invalid project status. Must be one of: ${validStatuses.join(', ')}`);
     }
 
-    if (project.type && !['AI Integration', 'Automation', 'Data Analytics', 'Machine Learning', 'Process Optimization', 'Other'].includes(project.type)) {
-      errors.push('Invalid project type');
+    // Allow all common project types
+    const validTypes = ['AI Integration', 'Automation', 'Data Analytics', 'Machine Learning', 
+                       'Process Optimization', 'AI System', 'Analytics', 'Infrastructure', 'Other'];
+    if (project.type && !validTypes.includes(project.type)) {
+      errors.push(`Invalid project type. Must be one of: ${validTypes.join(', ')}`);
     }
 
     const valid = errors.length === 0;

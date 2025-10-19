@@ -86,19 +86,7 @@ export const updateUserInRealtimeDb = async (userId, updates) => {
  */
 export const saveProjectToRealtimeDb = async (userId, project) => {
   try {
-    // Validate project data
-    const validation = validators.validateProject(project);
-    if (!validation.valid) {
-      const error = new Error(`Invalid project data: ${validation.errors.join(', ')}`);
-      errorMonitor.logError({
-        type: 'Validation Error',
-        message: error.message,
-        data: project,
-        timestamp: new Date().toISOString()
-      });
-      throw error;
-    }
-
+    // Create the project data with ID and userId before validation
     const projectsRef = ref(realtimeDb, `users/${userId}/projects`);
     const newProjectRef = push(projectsRef);
     
@@ -110,6 +98,19 @@ export const saveProjectToRealtimeDb = async (userId, project) => {
       createdAt: new Date().toISOString(),
       updatedAt: new Date().toISOString()
     };
+    
+    // Validate project data (pass isNew = true to skip ID/userId checks for new projects)
+    const validation = validators.validateProject(projectData, false);
+    if (!validation.valid) {
+      const error = new Error(`Invalid project data: ${validation.errors.join(', ')}`);
+      errorMonitor.logError({
+        type: 'Validation Error',
+        message: error.message,
+        data: projectData,
+        timestamp: new Date().toISOString()
+      });
+      throw error;
+    }
     
     console.log('💾 Saving project to Firebase:', projectData);
     
@@ -158,11 +159,29 @@ export const getUserProjectsFromRealtimeDb = async (userId) => {
  */
 export const updateProjectInRealtimeDb = async (userId, projectId, updates) => {
   try {
-    const projectRef = ref(realtimeDb, `users/${userId}/projects/${projectId}`);
-    await update(projectRef, {
+    // Prepare the full project data for validation
+    const updatedProject = {
       ...updates,
+      id: projectId,
+      userId: userId,
       updatedAt: new Date().toISOString()
-    });
+    };
+
+    // Validate the updated project data
+    const validation = validators.validateProject(updatedProject, false);
+    if (!validation.valid) {
+      const error = new Error(`Invalid project data: ${validation.errors.join(', ')}`);
+      errorMonitor.logError({
+        type: 'Validation Error',
+        message: error.message,
+        data: updatedProject,
+        timestamp: new Date().toISOString()
+      });
+      throw error;
+    }
+
+    const projectRef = ref(realtimeDb, `users/${userId}/projects/${projectId}`);
+    await update(projectRef, updatedProject);
     console.log('✅ Project updated in Realtime Database');
     return true;
   } catch (error) {
