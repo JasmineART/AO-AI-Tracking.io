@@ -6,8 +6,17 @@
   "scripts": {
     "start": "webpack serve --mode development --open",
     "build": "webpack --mode production",
+    "build:fast": "webpack --mode production --no-stats",
     "predeploy": "npm run build",
-    "deploy": "gh-pages -d dist"
+    "deploy": "gh-pages -d dist",
+    "deploy:firebase": "npm run build && firebase deploy --only hosting --force",
+    "deploy:rules": "firebase deploy --only database,firestore:rules --force",
+    "deploy:all": "npm run build && firebase deploy --force",
+    "deploy:quick": "./quick-deploy.sh",
+    "clean": "rm -rf dist node_modules/.cache",
+    "status": "firebase projects:list && git status",
+    "bug-check": "./bug-check.sh",
+    "health-check": "echo 'Run health check at http://localhost:3000/system-status'"
   },
   "devDependencies": {
     "@babel/core": "^7.28.4",

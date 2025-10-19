@@ -5,13 +5,35 @@ const webpack = require('webpack');
 const isProduction = process.env.NODE_ENV === 'production';
 const publicPath = isProduction ? '/AO-AI-Tracking.io/' : '/';
 
+// Build a connect-src string that is strict in production but allows
+// websocket schemes in development (codespaces / cloud-hosted dev servers
+// use dynamic hostnames like "*.app.github.dev:3000" which would otherwise
+// be blocked by a strict allowlist). Using the ws:/wss: scheme source in
+// development lets the dev websocket connect without hardcoding container
+// hostnames.
+const connectSrc = isProduction
+  ? "'self' https://*.firebaseio.com https://*.googleapis.com https://www.google-analytics.com wss://*.firebaseio.com"
+  : "'self' https://*.firebaseio.com https://*.googleapis.com https://www.google-analytics.com wss://*.firebaseio.com wss: ws:";
+
 module.exports = {
   entry: './index.js',
   output: {
     path: path.resolve(__dirname, 'dist'),
-    filename: 'bundle.js',
+    filename: isProduction ? 'bundle.[contenthash:8].js' : 'bundle.js',
     clean: true,
     publicPath: publicPath,
+  },
+  // Performance optimizations
+  cache: {
+    type: 'filesystem',
+    buildDependencies: {
+      config: [__filename],
+    },
+  },
+  performance: {
+    hints: isProduction ? 'warning' : false,
+    maxAssetSize: 512000,
+    maxEntrypointSize: 512000,
   },
   resolve: {
     extensions: ['.js', '.jsx'],
@@ -23,6 +45,10 @@ module.exports = {
         exclude: /node_modules/,
         use: {
           loader: 'babel-loader',
+          options: {
+            cacheDirectory: true, // Enable caching for faster rebuilds
+            cacheCompression: false,
+          }
         },
       },
       {
@@ -40,7 +66,7 @@ module.exports = {
       template: './index.html',
     }),
     new webpack.DefinePlugin({
-      'process.env.NODE_ENV': JSON.stringify(process.env.NODE_ENV || 'production'),
+      // NODE_ENV is automatically set by webpack based on --mode flag, so we don't redefine it here
       'process.env.REACT_APP_FIREBASE_API_KEY': JSON.stringify(process.env.REACT_APP_FIREBASE_API_KEY || 'AIzaSyCzyBwFrRvqoMcspj7lIYpiR3nRa7Bcy00'),
       'process.env.REACT_APP_FIREBASE_AUTH_DOMAIN': JSON.stringify(process.env.REACT_APP_FIREBASE_AUTH_DOMAIN || 'oa-ai-dash.firebaseapp.com'),
       'process.env.REACT_APP_FIREBASE_DATABASE_URL': JSON.stringify(process.env.REACT_APP_FIREBASE_DATABASE_URL || 'https://oa-ai-dash-default-rtdb.firebaseio.com'),
@@ -79,15 +105,23 @@ module.exports = {
     port: 3000,
     open: true,
     historyApiFallback: true,
+    // Allow all hosts for GitHub Codespaces and similar cloud dev environments
+    allowedHosts: 'all',
+    // Configure websocket client for cloud environments
+    client: {
+      webSocketURL: 'auto://0.0.0.0:0/ws',
+    },
     headers: {
-      // Content Security Policy
+      // Content Security Policy. connect-src is computed above to allow
+      // websocket schemes in development environments where the dev server
+      // is accessed via dynamic hostnames.
       'Content-Security-Policy': [
         "default-src 'self'",
         "script-src 'self' 'unsafe-inline' 'unsafe-eval' https://www.googletagmanager.com https://www.google-analytics.com",
         "style-src 'self' 'unsafe-inline' https://fonts.googleapis.com",
         "font-src 'self' https://fonts.gstatic.com data:",
         "img-src 'self' data: https: blob:",
-        "connect-src 'self' https://*.firebaseio.com https://*.googleapis.com https://www.google-analytics.com wss://*.firebaseio.com",
+        `connect-src ${connectSrc}`,
         "frame-src 'self' https://*.firebaseapp.com",
         "object-src 'none'",
         "base-uri 'self'",
@@ -95,16 +129,33 @@ module.exports = {
         "frame-ancestors 'none'",
         "upgrade-insecure-requests"
       ].join('; '),
-      
+
       // Security Headers
       'X-Content-Type-Options': 'nosniff',
       'X-Frame-Options': 'DENY',
       'X-XSS-Protection': '1; mode=block',
       'Referrer-Policy': 'strict-origin-when-cross-origin',
       'Permissions-Policy': 'geolocation=(), microphone=(), camera=()',
-      
+
       // HTTPS Enforcement (in production)
       'Strict-Transport-Security': 'max-age=31536000; includeSubDomains; preload'
     }
   },
+  // Production optimizations
+  optimization: {
+    minimize: isProduction,
+    splitChunks: isProduction ? {
+      chunks: 'all',
+      cacheGroups: {
+        vendor: {
+          test: /[\\/]node_modules[\\/]/,
+          name: 'vendors',
+          priority: 10,
+        },
+      },
+    } : false,
+  },
+  // Development options
+  devtool: isProduction ? 'source-map' : 'eval-cheap-module-source-map',
+  mode: isProduction ? 'production' : 'development',
 };

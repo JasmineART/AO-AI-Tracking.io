@@ -1,5 +1,7 @@
 import { ref, set, get, update, remove, push, onValue, off } from 'firebase/database';
 import { realtimeDb } from '../firebase';
+import validators from './validators';
+import errorMonitor from './errorMonitoring';
 
 /**
  * Save user data to Realtime Database
@@ -84,21 +86,40 @@ export const updateUserInRealtimeDb = async (userId, updates) => {
  */
 export const saveProjectToRealtimeDb = async (userId, project) => {
   try {
+    // Validate project data
+    const validation = validators.validateProject(project);
+    if (!validation.valid) {
+      const error = new Error(`Invalid project data: ${validation.errors.join(', ')}`);
+      errorMonitor.logError({
+        type: 'Validation Error',
+        message: error.message,
+        data: project,
+        timestamp: new Date().toISOString()
+      });
+      throw error;
+    }
+
     const projectsRef = ref(realtimeDb, `users/${userId}/projects`);
     const newProjectRef = push(projectsRef);
     
-    await set(newProjectRef, {
+    const projectData = {
       ...project,
       id: newProjectRef.key,
       userId: userId,
+      startDate: project.startDate || new Date().toISOString(),
       createdAt: new Date().toISOString(),
       updatedAt: new Date().toISOString()
-    });
+    };
+    
+    console.log('💾 Saving project to Firebase:', projectData);
+    
+    await set(newProjectRef, projectData);
     
     console.log('✅ Project saved to Realtime Database');
     return newProjectRef.key;
   } catch (error) {
     console.error('❌ Error saving project to Realtime Database:', error);
+    console.error('Error details:', error.message, error.code);
     throw error;
   }
 };

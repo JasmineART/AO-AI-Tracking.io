@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, useCallback } from 'react';
 import { Link } from 'react-router-dom';
 import { useAuth } from '../contexts/AuthContext';
 import {
@@ -16,7 +16,8 @@ import {
 } from 'chart.js';
 import { Line, Bar, Doughnut, Pie } from 'react-chartjs-2';
 import { getDemoData } from '../utils/demoData';
-import { getUserProjectsFromRealtimeDb } from '../utils/realtimeDatabase';
+import { getUserProjectsFromRealtimeDb, listenToProjects } from '../utils/realtimeDatabase';
+import { generateAIInsights, generateTimeSeriesData } from '../utils/aiAnalytics';
 
 // Register ChartJS components
 ChartJS.register(
@@ -53,16 +54,18 @@ const generateDashboardFromProjects = (projects) => {
       aggregateMetrics: {
         totalProjects: 0,
         activeProjects: 0,
+        completedProjects: 0,
+        overallReadiness: 0,
         avgReadiness: 0,
         dataPoints: 0
       },
       departmentMetrics: {},
-      timeSeriesData,
-      projects: []
+      timeSeriesData
     };
   }
 
   const activeProjects = projects.filter(p => p.status === 'Active' || p.status === 'In Progress').length;
+  const completedProjects = projects.filter(p => p.status === 'Completed' || p.status === 'Deployed').length;
   const avgReadiness = projects.reduce((sum, p) => sum + (p.readinessScore || 0), 0) / projects.length;
 
   // Group by department
@@ -97,43 +100,96 @@ const generateDashboardFromProjects = (projects) => {
     aggregateMetrics: {
       totalProjects: projects.length,
       activeProjects,
+      completedProjects,
+      overallReadiness: Math.round(avgReadiness),
       avgReadiness: Math.round(avgReadiness),
       dataPoints: projects.length * 20 // Simulated data points
     },
     departmentMetrics,
-    timeSeriesData,
-    projects
+    timeSeriesData
   };
 };
 
 const Dashboard = () => {
   const { currentUser } = useAuth();
+  const [projects, setProjects] = useState([]);
+  const [aiInsights, setAIInsights] = useState(null);
   const [dashboardData, setDashboardData] = useState(null);
   const [loading, setLoading] = useState(true);
+  const [analyzing, setAnalyzing] = useState(false);
+  const [lastUpdate, setLastUpdate] = useState(new Date());
 
+  // Load and analyze projects data
+  const loadAndAnalyzeData = useCallback(async (projectsData) => {
+    setAnalyzing(true);
+    try {
+      console.log('🔄 Analyzing projects data...', projectsData);
+      
+      // Generate AI insights
+      const insights = await generateAIInsights(projectsData);
+      setAIInsights(insights);
+      console.log('✅ AI Insights generated:', insights);
+      
+      // Generate dashboard metrics
+      const data = generateDashboardFromProjects(projectsData);
+      setDashboardData(data);
+      console.log('✅ Dashboard data generated:', data);
+      
+      setLastUpdate(new Date());
+    } catch (error) {
+      console.error('❌ Error analyzing data:', error);
+    } finally {
+      setAnalyzing(false);
+    }
+  }, []);
+
+  // Real-time listener for project changes
   useEffect(() => {
-    const loadDashboardData = async () => {
+    let unsubscribe = null;
+
+    const setupRealtimeListener = async () => {
       setLoading(true);
       try {
         if (currentUser?.isDemo) {
           // Demo user - use demo data
           const data = getDemoData();
-          setDashboardData(data);
+          setProjects(data.projects || []);
+          await loadAndAnalyzeData(data.projects || []);
         } else if (currentUser) {
-          // Real user - fetch from Firebase and generate metrics
-          const projects = await getUserProjectsFromRealtimeDb(currentUser.uid);
-          const data = generateDashboardFromProjects(projects || []);
-          setDashboardData(data);
+          // Real user - set up real-time listener
+          console.log('🔥 Setting up real-time project listener...');
+          
+          // Initial load
+          const initialProjects = await getUserProjectsFromRealtimeDb(currentUser.uid);
+          setProjects(initialProjects || []);
+          await loadAndAnalyzeData(initialProjects || []);
+          
+          // Set up real-time listener for updates
+          unsubscribe = listenToProjects(currentUser.uid, async (updatedProjects) => {
+            console.log('🔔 Projects updated in real-time!', updatedProjects);
+            setProjects(updatedProjects);
+            await loadAndAnalyzeData(updatedProjects);
+          });
         }
       } catch (error) {
-        console.error('Error loading dashboard data:', error);
-        setDashboardData(generateDashboardFromProjects([]));
+        console.error('Error setting up dashboard:', error);
+        setProjects([]);
+        await loadAndAnalyzeData([]);
+      } finally {
+        setLoading(false);
       }
-      setLoading(false);
     };
 
-    loadDashboardData();
-  }, [currentUser]);
+    setupRealtimeListener();
+
+    // Cleanup listener on unmount
+    return () => {
+      if (unsubscribe) {
+        console.log('🔌 Cleaning up real-time listener');
+        unsubscribe();
+      }
+    };
+  }, [currentUser, loadAndAnalyzeData]);
 
   if (loading || !dashboardData) {
     return (
@@ -143,7 +199,7 @@ const Dashboard = () => {
     );
   }
 
-  const { aggregateMetrics, departmentMetrics, timeSeriesData, projects } = dashboardData;
+  const { aggregateMetrics, departmentMetrics, timeSeriesData } = dashboardData;
 
   // Safety checks: ensure data is in correct format
   const safeTimeSeriesData = Array.isArray(timeSeriesData) ? timeSeriesData : [];
@@ -274,68 +330,348 @@ const Dashboard = () => {
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-gray-50 via-blue-50 to-indigo-50 py-8">
-      <div className="container mx-auto px-4">
-        <div className="mb-8 animate-fadeInDown">
-          <h1 className="text-4xl font-extrabold mb-2">
-            <span className="gradient-text">AI Readiness Dashboard</span>
-          </h1>
-          <p className="text-gray-600 text-lg">Enterprise-wide AI and automation tracking metrics</p>
-        </div>
-
-        {/* Key Metrics Cards */}
-        <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
-          <div className="bg-gradient-to-br from-indigo-500 to-indigo-600 rounded-2xl shadow-xl p-6 text-white transform hover:scale-105 transition-all duration-300 hover:shadow-2xl animate-fadeInUp">
-            <div className="flex items-center justify-between mb-3">
-              <h3 className="text-sm font-semibold opacity-90">Overall Readiness</h3>
-              <span className="text-3xl">🎯</span>
+      <div className="container mx-auto px-4 max-w-7xl">
+        {/* Hero Header with Stats */}
+        <div className="mb-10 animate-fadeInDown">
+          <div className="flex items-center justify-between mb-6">
+            <div>
+              <h1 className="text-5xl font-extrabold mb-3 bg-gradient-to-r from-indigo-600 via-purple-600 to-pink-600 bg-clip-text text-transparent">
+                AI Readiness Dashboard
+              </h1>
+              <p className="text-gray-600 text-xl">Real-time enterprise AI and automation insights</p>
             </div>
-            <p className="text-4xl font-extrabold mb-1">{aggregateMetrics.overallReadiness}%</p>
-            <p className="text-sm opacity-80">Enterprise average</p>
-            <div className="mt-4 h-2 bg-white/30 rounded-full overflow-hidden">
-              <div className="h-full bg-white rounded-full" style={{width: `${aggregateMetrics.overallReadiness}%`}}></div>
-            </div>
-          </div>
-
-          <div className="bg-gradient-to-br from-blue-500 to-blue-600 rounded-2xl shadow-xl p-6 text-white transform hover:scale-105 transition-all duration-300 hover:shadow-2xl animate-fadeInUp" style={{animationDelay: '0.1s'}}>
-            <div className="flex items-center justify-between mb-3">
-              <h3 className="text-sm font-semibold opacity-90">Total Projects</h3>
-              <span className="text-3xl">📊</span>
-            </div>
-            <p className="text-4xl font-extrabold mb-1">{aggregateMetrics.totalProjects}</p>
-            <p className="text-sm opacity-80">Active & completed</p>
-            <div className="mt-4 flex gap-1">
-              {[...Array(aggregateMetrics.totalProjects)].map((_, i) => (
-                <div key={i} className="flex-1 h-2 bg-white/50 rounded-full"></div>
-              ))}
-            </div>
-          </div>
-
-          <div className="bg-gradient-to-br from-yellow-500 to-orange-500 rounded-2xl shadow-xl p-6 text-white transform hover:scale-105 transition-all duration-300 hover:shadow-2xl animate-fadeInUp" style={{animationDelay: '0.2s'}}>
-            <div className="flex items-center justify-between mb-3">
-              <h3 className="text-sm font-semibold opacity-90">In Progress</h3>
-              <span className="text-3xl">⚡</span>
-            </div>
-            <p className="text-4xl font-extrabold mb-1">{aggregateMetrics.activeProjects}</p>
-            <p className="text-sm opacity-80">Currently active</p>
-            <div className="mt-4 flex items-center gap-2">
-              <div className="w-3 h-3 bg-white rounded-full animate-pulse"></div>
-              <div className="text-xs opacity-90">Live tracking</div>
-            </div>
-          </div>
-
-          <div className="bg-gradient-to-br from-green-500 to-emerald-600 rounded-2xl shadow-xl p-6 text-white transform hover:scale-105 transition-all duration-300 hover:shadow-2xl animate-fadeInUp" style={{animationDelay: '0.3s'}}>
-            <div className="flex items-center justify-between mb-3">
-              <h3 className="text-sm font-semibold opacity-90">Completed</h3>
-              <span className="text-3xl">✅</span>
-            </div>
-            <p className="text-4xl font-extrabold mb-1">{aggregateMetrics.completedProjects}</p>
-            <p className="text-sm opacity-80">Successfully deployed</p>
-            <div className="mt-4 flex items-center gap-2">
-              <div className="text-2xl">🎉</div>
-              <div className="text-xs opacity-90">Celebrating success</div>
+            <div className="hidden md:flex items-center gap-3 bg-white rounded-2xl shadow-lg px-6 py-4">
+              <div className="text-center">
+                <div className="text-3xl font-bold text-indigo-600">{aggregateMetrics.overallReadiness}%</div>
+                <div className="text-xs text-gray-500 font-semibold">READINESS</div>
+              </div>
+              <div className="w-px h-12 bg-gray-200"></div>
+              <div className="text-center">
+                <div className="text-3xl font-bold text-blue-600">{aggregateMetrics.totalProjects}</div>
+                <div className="text-xs text-gray-500 font-semibold">PROJECTS</div>
+              </div>
             </div>
           </div>
         </div>
+
+        {/* Enhanced Key Metrics Cards with Circular Progress */}
+        <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-6 mb-10">
+          {/* Overall Readiness - Circular Progress */}
+          <div className="bg-white rounded-3xl shadow-xl p-8 transform hover:scale-105 transition-all duration-500 hover:shadow-2xl animate-fadeInUp border-2 border-indigo-100 relative overflow-hidden">
+            <div className="absolute top-0 right-0 w-32 h-32 bg-gradient-to-br from-indigo-500/10 to-purple-500/10 rounded-full -mr-16 -mt-16"></div>
+            <div className="relative">
+              <div className="flex items-center justify-between mb-4">
+                <h3 className="text-sm font-bold text-gray-700 uppercase tracking-wide">Overall Readiness</h3>
+                <span className="text-4xl">🎯</span>
+              </div>
+              <div className="flex items-center justify-center my-6">
+                <div className="relative w-32 h-32">
+                  <svg className="transform -rotate-90 w-32 h-32">
+                    <circle cx="64" cy="64" r="56" stroke="#e5e7eb" strokeWidth="12" fill="none" />
+                    <circle 
+                      cx="64" cy="64" r="56" 
+                      stroke="url(#gradient-indigo)" 
+                      strokeWidth="12" 
+                      fill="none" 
+                      strokeDasharray={`${(aggregateMetrics.overallReadiness / 100) * 351.86} 351.86`}
+                      strokeLinecap="round"
+                      className="transition-all duration-1000 ease-out"
+                    />
+                    <defs>
+                      <linearGradient id="gradient-indigo" x1="0%" y1="0%" x2="100%" y2="100%">
+                        <stop offset="0%" stopColor="#6366f1" />
+                        <stop offset="100%" stopColor="#8b5cf6" />
+                      </linearGradient>
+                    </defs>
+                  </svg>
+                  <div className="absolute inset-0 flex items-center justify-center">
+                    <span className="text-3xl font-extrabold text-indigo-600">{aggregateMetrics.overallReadiness}%</span>
+                  </div>
+                </div>
+              </div>
+              <p className="text-center text-sm text-gray-600 font-medium">Enterprise Average</p>
+            </div>
+          </div>
+
+          {/* Total Projects - Enhanced Card */}
+          <div className="bg-gradient-to-br from-blue-500 to-cyan-600 rounded-3xl shadow-xl p-8 text-white transform hover:scale-105 transition-all duration-500 hover:shadow-2xl animate-fadeInUp relative overflow-hidden" style={{animationDelay: '0.1s'}}>
+            <div className="absolute top-0 right-0 w-40 h-40 bg-white/10 rounded-full -mr-20 -mt-20"></div>
+            <div className="absolute bottom-0 left-0 w-24 h-24 bg-white/10 rounded-full -ml-12 -mb-12"></div>
+            <div className="relative">
+              <div className="flex items-center justify-between mb-4">
+                <h3 className="text-sm font-bold opacity-90 uppercase tracking-wide">Total Projects</h3>
+                <span className="text-5xl">📊</span>
+              </div>
+              <p className="text-6xl font-extrabold mb-2">{aggregateMetrics.totalProjects}</p>
+              <p className="text-sm opacity-90 mb-4">Active & completed portfolio</p>
+              <div className="flex gap-1">
+                {[...Array(Math.min(aggregateMetrics.totalProjects, 10))].map((_, i) => (
+                  <div 
+                    key={i} 
+                    className="flex-1 h-2 bg-white/40 rounded-full animate-pulse" 
+                    style={{animationDelay: `${i * 0.1}s`}}
+                  ></div>
+                ))}
+                {aggregateMetrics.totalProjects > 10 && (
+                  <span className="text-xs ml-2 opacity-80">+{aggregateMetrics.totalProjects - 10}</span>
+                )}
+              </div>
+            </div>
+          </div>
+
+          {/* In Progress - Enhanced Card */}
+          <div className="bg-gradient-to-br from-amber-500 to-orange-600 rounded-3xl shadow-xl p-8 text-white transform hover:scale-105 transition-all duration-500 hover:shadow-2xl animate-fadeInUp relative overflow-hidden" style={{animationDelay: '0.2s'}}>
+            <div className="absolute top-0 right-0 w-40 h-40 bg-white/10 rounded-full -mr-20 -mt-20"></div>
+            <div className="absolute bottom-0 left-0 w-24 h-24 bg-white/10 rounded-full -ml-12 -mb-12"></div>
+            <div className="relative">
+              <div className="flex items-center justify-between mb-4">
+                <h3 className="text-sm font-bold opacity-90 uppercase tracking-wide">In Progress</h3>
+                <span className="text-5xl">⚡</span>
+              </div>
+              <p className="text-6xl font-extrabold mb-2">{aggregateMetrics.activeProjects}</p>
+              <p className="text-sm opacity-90 mb-4">Currently active initiatives</p>
+              <div className="flex items-center gap-3">
+                <div className="flex gap-1">
+                  <div className="w-2 h-2 bg-white rounded-full animate-bounce" style={{animationDelay: '0s'}}></div>
+                  <div className="w-2 h-2 bg-white rounded-full animate-bounce" style={{animationDelay: '0.2s'}}></div>
+                  <div className="w-2 h-2 bg-white rounded-full animate-bounce" style={{animationDelay: '0.4s'}}></div>
+                </div>
+                <span className="text-xs opacity-90 font-semibold">Live Tracking</span>
+              </div>
+            </div>
+          </div>
+
+          {/* Completed - Enhanced Card */}
+          <div className="bg-gradient-to-br from-emerald-500 to-teal-600 rounded-3xl shadow-xl p-8 text-white transform hover:scale-105 transition-all duration-500 hover:shadow-2xl animate-fadeInUp relative overflow-hidden" style={{animationDelay: '0.3s'}}>
+            <div className="absolute top-0 right-0 w-40 h-40 bg-white/10 rounded-full -mr-20 -mt-20"></div>
+            <div className="absolute bottom-0 left-0 w-24 h-24 bg-white/10 rounded-full -ml-12 -mb-12"></div>
+            <div className="relative">
+              <div className="flex items-center justify-between mb-4">
+                <h3 className="text-sm font-bold opacity-90 uppercase tracking-wide">Completed</h3>
+                <span className="text-5xl">✅</span>
+              </div>
+              <p className="text-6xl font-extrabold mb-2">{aggregateMetrics.completedProjects}</p>
+              <p className="text-sm opacity-90 mb-4">Successfully deployed</p>
+              <div className="flex items-center gap-3">
+                <div className="text-3xl">🎉</div>
+                <span className="text-xs opacity-90 font-semibold">Celebrating Success</span>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        {/* AI Insights Section */}
+        {aiInsights && (
+          <div className="mb-10 animate-fadeInUp" style={{animationDelay: '0.4s'}}>
+            {/* AI Analysis Header with enhanced design */}
+            <div className="bg-gradient-to-r from-purple-600 via-pink-600 to-indigo-600 rounded-3xl shadow-2xl p-8 mb-8 text-white relative overflow-hidden">
+              <div className="absolute top-0 right-0 w-64 h-64 bg-white/10 rounded-full -mr-32 -mt-32"></div>
+              <div className="absolute bottom-0 left-0 w-48 h-48 bg-white/10 rounded-full -ml-24 -mb-24"></div>
+              <div className="relative">
+                <div className="flex items-center justify-between mb-6">
+                  <div className="flex items-center gap-4">
+                    <div className="text-6xl animate-pulse">🤖</div>
+                    <div>
+                      <h2 className="text-3xl font-extrabold mb-1">AI-Powered Insights</h2>
+                      <p className="text-sm opacity-90">Real-time analytics • Last updated {analyzing ? 'now' : lastUpdate.toLocaleTimeString()}</p>
+                    </div>
+                  </div>
+                  {analyzing && (
+                    <div className="flex items-center gap-3 bg-white/20 rounded-full px-4 py-2">
+                      <div className="flex gap-1">
+                        <div className="w-2 h-2 bg-white rounded-full animate-bounce" style={{animationDelay: '0s'}}></div>
+                        <div className="w-2 h-2 bg-white rounded-full animate-bounce" style={{animationDelay: '0.2s'}}></div>
+                        <div className="w-2 h-2 bg-white rounded-full animate-bounce" style={{animationDelay: '0.4s'}}></div>
+                      </div>
+                      <span className="text-sm font-semibold">Analyzing</span>
+                    </div>
+                  )}
+                </div>
+                <p className="text-xl leading-relaxed font-light">{aiInsights.summary}</p>
+              </div>
+            </div>
+
+            {/* Key Recommendations with enhanced cards */}
+            {aiInsights.recommendations && aiInsights.recommendations.length > 0 && (
+              <div className="bg-white rounded-3xl shadow-2xl p-8 mb-8 border border-gray-100">
+                <h3 className="text-2xl font-extrabold text-gray-900 mb-6 flex items-center gap-3">
+                  <span className="text-4xl">💡</span> 
+                  <span>Priority Recommendations</span>
+                  <span className="ml-auto bg-orange-100 text-orange-700 px-3 py-1 rounded-full text-sm font-bold">
+                    {aiInsights.recommendations.length} Actions
+                  </span>
+                </h3>
+                <div className="space-y-4">
+                  {aiInsights.recommendations.map((rec, index) => (
+                    <div key={index} className={`p-6 rounded-2xl border-l-4 transform hover:scale-102 transition-all duration-300 hover:shadow-lg ${
+                      rec.priority === 'high' ? 'bg-red-50 border-red-500 hover:bg-red-100' :
+                      rec.priority === 'medium' ? 'bg-yellow-50 border-yellow-500 hover:bg-yellow-100' :
+                      'bg-blue-50 border-blue-500 hover:bg-blue-100'
+                    }`}>
+                      <div className="flex items-start justify-between">
+                        <div className="flex-1">
+                          <div className="flex items-center gap-3 mb-3">
+                            <span className={`px-3 py-1 rounded-full text-xs font-extrabold shadow-sm ${
+                              rec.priority === 'high' ? 'bg-red-500 text-white' :
+                              rec.priority === 'medium' ? 'bg-yellow-500 text-white' :
+                              'bg-blue-500 text-white'
+                            }`}>
+                              {rec.priority.toUpperCase()} PRIORITY
+                            </span>
+                            <span className="px-3 py-1 bg-white rounded-full text-xs text-gray-700 font-bold shadow-sm">{rec.category}</span>
+                          </div>
+                          <h4 className="font-extrabold text-gray-900 text-lg mb-2">{rec.title}</h4>
+                          <p className="text-sm text-gray-700 mb-3 leading-relaxed">{rec.description}</p>
+                          <div className="flex items-start gap-2 bg-white/50 rounded-lg p-3">
+                            <span className="text-lg">→</span>
+                            <p className="text-sm text-gray-800 font-medium">{rec.action}</p>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
+
+            {/* Trends and Predictions Grid - Enhanced */}
+            <div className="grid md:grid-cols-2 gap-8 mb-8">
+              {/* Current Trends */}
+              {aiInsights.trends && aiInsights.trends.length > 0 && (
+                <div className="bg-gradient-to-br from-blue-50 via-indigo-50 to-purple-50 rounded-3xl shadow-xl p-8 border border-blue-200 hover:shadow-2xl transition-shadow duration-300">
+                  <h3 className="text-2xl font-extrabold text-gray-900 mb-6 flex items-center gap-3">
+                    <span className="text-4xl">📈</span> Current Trends
+                  </h3>
+                  <div className="space-y-5">
+                    {aiInsights.trends.map((trend, index) => (
+                      <div key={index} className="bg-white rounded-2xl p-5 shadow-md hover:shadow-lg transition-all duration-300 transform hover:scale-105">
+                        <div className="flex items-center justify-between mb-3">
+                          <span className="font-bold text-gray-900 text-lg">{trend.metric}</span>
+                          <span className={`text-3xl ${
+                            trend.direction === 'up' ? 'text-green-500' :
+                            trend.direction === 'down' ? 'text-red-500' :
+                            'text-gray-500'
+                          }`}>
+                            {trend.direction === 'up' ? '↗️' : trend.direction === 'down' ? '↘️' : '→'}
+                          </span>
+                        </div>
+                        <p className="text-3xl font-extrabold bg-gradient-to-r from-indigo-600 to-purple-600 bg-clip-text text-transparent mb-2">{trend.value}</p>
+                        <p className="text-sm text-gray-600 leading-relaxed">{trend.insight}</p>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              )}
+
+              {/* Predictions */}
+              {aiInsights.predictions && (
+                <div className="bg-gradient-to-br from-purple-50 via-pink-50 to-rose-50 rounded-3xl shadow-xl p-8 border border-purple-200 hover:shadow-2xl transition-shadow duration-300">
+                  <h3 className="text-2xl font-extrabold text-gray-900 mb-6 flex items-center gap-3">
+                    <span className="text-4xl">🔮</span> AI Predictions
+                  </h3>
+                  <div className="space-y-5">
+                    <div className="bg-white rounded-2xl p-6 shadow-md hover:shadow-lg transition-all duration-300">
+                      <div className="flex items-center gap-2 mb-4">
+                        <span className="text-2xl">📅</span>
+                        <h4 className="font-extrabold text-gray-900 text-lg">Next Month Forecast</h4>
+                      </div>
+                      <div className="space-y-3">
+                        <div className="flex items-center justify-between p-3 bg-blue-50 rounded-xl">
+                          <span className="text-sm font-semibold text-gray-700">Expected Completions:</span>
+                          <span className="text-xl font-extrabold text-blue-600">{aiInsights.predictions.nextMonth.expectedCompletions}</span>
+                        </div>
+                        <div className="flex items-center justify-between p-3 bg-purple-50 rounded-xl">
+                          <span className="text-sm font-semibold text-gray-700">Confidence Level:</span>
+                          <span className={`px-3 py-1 rounded-full text-xs font-extrabold ${
+                            aiInsights.predictions.nextMonth.confidenceLevel === 'high' ? 'bg-green-500 text-white' :
+                            aiInsights.predictions.nextMonth.confidenceLevel === 'medium' ? 'bg-yellow-500 text-white' :
+                            'bg-red-500 text-white'
+                          }`}>
+                            {aiInsights.predictions.nextMonth.confidenceLevel.toUpperCase()}
+                          </span>
+                        </div>
+                        <div className="p-3 bg-indigo-50 rounded-xl">
+                          <span className="text-sm font-semibold text-gray-700 block mb-1">Readiness Trend:</span>
+                          <span className="text-sm text-indigo-700 font-medium">{aiInsights.predictions.nextMonth.readinessTrend}</span>
+                        </div>
+                      </div>
+                    </div>
+                    <div className="bg-white rounded-2xl p-6 shadow-md hover:shadow-lg transition-all duration-300">
+                      <div className="flex items-center gap-2 mb-4">
+                        <span className="text-2xl">📊</span>
+                        <h4 className="font-extrabold text-gray-900 text-lg">Quarterly Outlook</h4>
+                      </div>
+                      <div className="space-y-3">
+                        <div className="p-3 bg-green-50 rounded-xl">
+                          <span className="text-sm font-semibold text-gray-700 block mb-1">Portfolio Growth:</span>
+                          <span className="text-lg text-green-700 font-bold">{aiInsights.predictions.nextQuarter.portfolioGrowth}</span>
+                        </div>
+                        <div className="flex items-center justify-between p-3 bg-blue-50 rounded-xl">
+                          <span className="text-sm font-semibold text-gray-700">Target Readiness:</span>
+                          <span className="text-xl font-extrabold text-blue-600">{aiInsights.predictions.nextQuarter.readinessTarget}%</span>
+                        </div>
+                        <div className="p-3 bg-purple-50 rounded-xl">
+                          <span className="text-sm font-semibold text-gray-700 block mb-1">Recommendation:</span>
+                          <span className="text-sm text-purple-700 font-medium">{aiInsights.predictions.nextQuarter.recommendation}</span>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              )}
+            </div>
+
+            {/* Risk Factors - Enhanced */}
+            {aiInsights.riskFactors && aiInsights.riskFactors.length > 0 && (
+              <div className="bg-gradient-to-br from-red-50 via-orange-50 to-yellow-50 rounded-3xl shadow-xl p-8 mb-8 border-2 border-red-200">
+                <h3 className="text-2xl font-extrabold text-gray-900 mb-6 flex items-center gap-3">
+                  <span className="text-4xl">⚠️</span> 
+                  <span>Risk Factors</span>
+                  <span className="ml-auto bg-red-100 text-red-700 px-3 py-1 rounded-full text-sm font-bold">
+                    {aiInsights.riskFactors.length} Identified
+                  </span>
+                </h3>
+                <div className="space-y-4">
+                  {aiInsights.riskFactors.map((risk, index) => (
+                    <div key={index} className="bg-white rounded-2xl p-6 shadow-md hover:shadow-xl transition-all duration-300 transform hover:scale-102">
+                      <div className="flex items-start gap-4">
+                        <div className="flex-shrink-0">
+                          <span className={`inline-flex items-center justify-center w-16 h-16 rounded-full text-2xl ${
+                            risk.level === 'high' ? 'bg-red-100 text-red-600' :
+                            risk.level === 'medium' ? 'bg-yellow-100 text-yellow-600' :
+                            'bg-gray-100 text-gray-600'
+                          }`}>
+                            {risk.level === 'high' ? '🚨' : risk.level === 'medium' ? '⚡' : 'ℹ️'}
+                          </span>
+                        </div>
+                        <div className="flex-1">
+                          <div className="flex items-center gap-3 mb-3">
+                            <span className={`px-3 py-1 rounded-full text-xs font-extrabold shadow-sm ${
+                              risk.level === 'high' ? 'bg-red-500 text-white' :
+                              risk.level === 'medium' ? 'bg-yellow-500 text-white' :
+                              'bg-gray-500 text-white'
+                            }`}>
+                              {risk.level.toUpperCase()} RISK
+                            </span>
+                          </div>
+                          <h4 className="font-extrabold text-gray-900 text-lg mb-3">{risk.risk}</h4>
+                          <div className="bg-orange-50 rounded-xl p-4 mb-3">
+                            <span className="text-sm font-bold text-gray-700 block mb-1">💥 Impact:</span>
+                            <p className="text-sm text-gray-800">{risk.impact}</p>
+                          </div>
+                          <div className="bg-green-50 rounded-xl p-4">
+                            <span className="text-sm font-bold text-gray-700 block mb-1">✅ Mitigation Strategy:</span>
+                            <p className="text-sm text-gray-800">{risk.mitigation}</p>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
+          </div>
+        )}
 
         {/* Charts Row 1 */}
         <div className="grid lg:grid-cols-2 gap-6 mb-6">

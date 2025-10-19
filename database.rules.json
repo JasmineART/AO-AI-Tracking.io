@@ -8,8 +8,9 @@
         ".read": "auth != null && auth.uid == $uid",
         ".write": "auth != null && auth.uid == $uid",
         
-        ".validate": "newData.hasChildren(['email', 'displayName'])",
-        
+        "uid": {
+          ".validate": "newData.val() == $uid"
+        },
         "email": {
           ".validate": "newData.isString() && newData.val().matches(/^[A-Z0-9._%+-]+@[A-Z0-9.-]+\\.[A-Z]{2,}$/i)"
         },
@@ -39,7 +40,51 @@
         },
         "projects": {
           "$projectId": {
-            ".validate": "newData.isString()"
+            ".read": "auth != null && auth.uid == $uid",
+            ".write": "auth != null && auth.uid == $uid",
+            
+            "id": {
+              ".validate": "newData.isString()"
+            },
+            "name": {
+              ".validate": "newData.isString() && newData.val().length >= 1 && newData.val().length <= 200"
+            },
+            "type": {
+              ".validate": "newData.isString()"
+            },
+            "status": {
+              ".validate": "newData.isString() && (newData.val() == 'Planning' || newData.val() == 'In Progress' || newData.val() == 'Completed' || newData.val() == 'On Hold')"
+            },
+            "dataSource": {
+              ".validate": "newData.isString()"
+            },
+            "owner": {
+              ".validate": "newData.isString() && newData.val().length >= 1"
+            },
+            "department": {
+              ".validate": "newData.isString() && newData.val().length >= 1"
+            },
+            "readinessScore": {
+              ".validate": "newData.isNumber() && newData.val() >= 0 && newData.val() <= 100"
+            },
+            "userId": {
+              ".validate": "newData.val() == auth.uid"
+            },
+            "createdAt": {
+              ".validate": "newData.isString()"
+            },
+            "updatedAt": {
+              ".validate": "newData.isString()"
+            },
+            "startDate": {
+              ".validate": "newData.isString() || newData.isNumber()"
+            }
+          }
+        },
+        "preferences": {
+          ".validate": "newData.hasChildren()",
+          "$key": {
+            ".validate": "newData.isString() || newData.isBoolean()"
           }
         },
         "$other": {
