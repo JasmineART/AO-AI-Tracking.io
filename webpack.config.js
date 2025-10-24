@@ -111,6 +111,17 @@ module.exports = {
     client: {
       webSocketURL: 'auto://0.0.0.0:0/ws',
     },
+    // Proxy API calls to the local dev API server (useful during development)
+    // Use array form to match config schema for this webpack-dev-server version
+    proxy: [
+      {
+        context: ['/api'],
+        target: 'http://localhost:4000',
+        secure: false,
+        changeOrigin: true,
+        logLevel: 'warn'
+      }
+    ],
     headers: {
       // Content Security Policy. connect-src is computed above to allow
       // websocket schemes in development environments where the dev server

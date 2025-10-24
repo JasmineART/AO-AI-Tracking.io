@@ -85,126 +85,23 @@ async function logout() {
   return Promise.resolve();
 }
 
-// Test suite
-async function runTests() {
-  console.log('🧪 Starting Demo Logout Tests...\n');
-  
-  let testsPassed = 0;
-  let testsFailed = 0;
+describe('Demo logout flow (localStorage)', () => {
+  beforeEach(() => {
+    // clear mock localStorage
+    localStorage.clear();
+    currentUser = null;
+  });
 
-  // Test 1: Demo Login
-  console.log('Test 1: Demo Login');
-  try {
+  test('demoLogin stores demoUser and demoData and logout clears them', async () => {
     await demoLogin();
-    
-    if (currentUser === null) {
-      throw new Error('currentUser should be set after demoLogin');
-    }
-    if (!currentUser.isDemo) {
-      throw new Error('currentUser.isDemo should be true');
-    }
-    if (localStorage.getItem('demoUser') === null) {
-      throw new Error('demoUser should be in localStorage');
-    }
-    if (localStorage.getItem('demoData') === null) {
-      throw new Error('demoData should be in localStorage');
-    }
-    
-    console.log('✅ PASSED: Demo user logged in successfully');
-    console.log(`   - currentUser.email: ${currentUser.email}`);
-    console.log(`   - localStorage has demoUser: ${localStorage.getItem('demoUser') !== null}`);
-    console.log(`   - localStorage has demoData: ${localStorage.getItem('demoData') !== null}`);
-    testsPassed++;
-  } catch (error) {
-    console.log(`❌ FAILED: ${error.message}`);
-    testsFailed++;
-  }
-  console.log('');
+    expect(currentUser).not.toBeNull();
+    expect(currentUser.isDemo).toBe(true);
+    expect(localStorage.getItem('demoUser')).not.toBeNull();
+    expect(localStorage.getItem('demoData')).not.toBeNull();
 
-  // Test 2: Demo Logout
-  console.log('Test 2: Demo Logout');
-  try {
     await logout();
-    
-    if (currentUser !== null) {
-      throw new Error('currentUser should be null after logout');
-    }
-    if (localStorage.getItem('demoUser') !== null) {
-      throw new Error('demoUser should be removed from localStorage');
-    }
-    if (localStorage.getItem('demoData') !== null) {
-      throw new Error('demoData should be removed from localStorage');
-    }
-    
-    console.log('✅ PASSED: Demo logout cleared all state');
-    console.log(`   - currentUser is null: ${currentUser === null}`);
-    console.log(`   - demoUser removed: ${localStorage.getItem('demoUser') === null}`);
-    console.log(`   - demoData removed: ${localStorage.getItem('demoData') === null}`);
-    testsPassed++;
-  } catch (error) {
-    console.log(`❌ FAILED: ${error.message}`);
-    testsFailed++;
-  }
-  console.log('');
-
-  // Test 3: Re-login after logout
-  console.log('Test 3: Re-login After Logout');
-  try {
-    await demoLogin();
-    
-    if (currentUser === null) {
-      throw new Error('Should be able to login again after logout');
-    }
-    if (!currentUser.isDemo) {
-      throw new Error('Re-login should set isDemo flag');
-    }
-    
-    console.log('✅ PASSED: Can re-login after logout');
-    console.log(`   - currentUser restored: ${currentUser !== null}`);
-    testsPassed++;
-  } catch (error) {
-    console.log(`❌ FAILED: ${error.message}`);
-    testsFailed++;
-  }
-  console.log('');
-
-  // Test 4: Logout again to verify consistency
-  console.log('Test 4: Second Logout (Consistency Check)');
-  try {
-    await logout();
-    
-    if (currentUser !== null) {
-      throw new Error('Second logout should also clear state');
-    }
-    
-    console.log('✅ PASSED: Second logout works correctly');
-    testsPassed++;
-  } catch (error) {
-    console.log(`❌ FAILED: ${error.message}`);
-    testsFailed++;
-  }
-  console.log('');
-
-  // Summary
-  console.log('═'.repeat(50));
-  console.log('📊 Test Summary');
-  console.log('═'.repeat(50));
-  console.log(`Total Tests: ${testsPassed + testsFailed}`);
-  console.log(`✅ Passed: ${testsPassed}`);
-  console.log(`❌ Failed: ${testsFailed}`);
-  console.log('');
-  
-  if (testsFailed === 0) {
-    console.log('🎉 All tests passed! Demo logout is working correctly.');
-    process.exit(0);
-  } else {
-    console.log('⚠️  Some tests failed. Please review the implementation.');
-    process.exit(1);
-  }
-}
-
-// Run tests
-runTests().catch(error => {
-  console.error('💥 Test suite crashed:', error);
-  process.exit(1);
+    expect(currentUser).toBeNull();
+    expect(localStorage.getItem('demoUser')).toBeNull();
+    expect(localStorage.getItem('demoData')).toBeNull();
+  });
 });

@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { useAuth } from '../contexts/AuthContext';
+import { useToast } from '../contexts/ToastContext';
 import { initializeDemoData } from '../utils/demoData';
 import { 
   validateAndSanitize, 
@@ -17,6 +18,7 @@ const Login = () => {
   const [rateLimitError, setRateLimitError] = useState('');
   
   const { signInWithGoogle, signInWithGithub, signInWithEmail, signUpWithEmail, demoLogin } = useAuth();
+  const { success, error: showError, warning } = useToast();
   const navigate = useNavigate();
   const location = useLocation();
   const loginRateLimiter = createLoginRateLimiter();
@@ -45,9 +47,11 @@ const Login = () => {
       setError('');
       initializeDemoData(); // Initialize demo data
       await demoLogin();
+      success('Welcome to Demo Mode! 🎉');
       navigate('/dashboard');
     } catch (err) {
       setError('Failed to login with demo account');
+      showError('Failed to login with demo account');
     } finally {
       setLoading(false);
     }
@@ -61,10 +65,12 @@ const Login = () => {
       setError('');
       await signInWithGoogle();
       loginRateLimiter.reset(); // Reset on successful login
+      success('Successfully signed in with Google! 🎉');
       navigate('/dashboard');
     } catch (err) {
       loginRateLimiter.recordAttempt();
       setError('Failed to sign in with Google: ' + err.message);
+      showError('Failed to sign in with Google');
     } finally {
       setLoading(false);
     }
@@ -78,10 +84,12 @@ const Login = () => {
       setError('');
       await signInWithGithub();
       loginRateLimiter.reset(); // Reset on successful login
+      success('Successfully signed in with GitHub! 🎉');
       navigate('/dashboard');
     } catch (err) {
       loginRateLimiter.recordAttempt();
       setError('Failed to sign in with GitHub: ' + err.message);
+      showError('Failed to sign in with GitHub');
     } finally {
       setLoading(false);
     }
@@ -112,6 +120,7 @@ const Login = () => {
       // Validate password
       if (!password || password.length < 6) {
         setError('Password must be at least 6 characters long');
+        warning('Password must be at least 6 characters long');
         setLoading(false);
         return;
       }
@@ -121,8 +130,10 @@ const Login = () => {
       
       if (isSignUp) {
         await signUpWithEmail(sanitizedEmail, password);
+        success('Account created successfully! Welcome! 🎉');
       } else {
         await signInWithEmail(sanitizedEmail, password);
+        success('Successfully signed in! 🎉');
       }
       
       loginRateLimiter.reset(); // Reset on successful login
@@ -130,6 +141,7 @@ const Login = () => {
     } catch (err) {
       loginRateLimiter.recordAttempt();
       setError(err.message);
+      showError(isSignUp ? 'Failed to create account' : 'Failed to sign in');
     } finally {
       setLoading(false);
     }
