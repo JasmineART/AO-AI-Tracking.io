@@ -62,7 +62,7 @@ const Navbar = () => {
   };
 
   return (
-    <nav className="bg-white/80 dark:bg-gray-800/80 backdrop-blur-lg shadow-lg sticky top-0 z-50 border-b border-gray-200 dark:border-gray-700 transition-colors duration-200">
+    <nav className="bg-white/80 dark:bg-gray-800/80 backdrop-blur-lg shadow-lg sticky top-0 z-[100] border-b border-gray-200 dark:border-gray-700 transition-colors duration-200">
       <div className="container mx-auto px-4">
         <div className="flex justify-between items-center h-16">
           {/* Logo */}
@@ -158,7 +158,7 @@ const Navbar = () => {
                 onClick={() => setMenuOpen(open => !open)}
                 aria-expanded={menuOpen}
                 aria-controls="mobile-menu"
-                className="p-2 rounded-md text-gray-700 hover:text-indigo-600 focus:outline-none focus:ring-2 focus:ring-indigo-500"
+                className="p-2 rounded-md text-gray-700 dark:text-gray-200 hover:text-indigo-600 dark:hover:text-indigo-400 focus:outline-none focus:ring-2 focus:ring-indigo-500"
                 title={menuOpen ? 'Close menu' : 'Open menu'}
               >
                 {menuOpen ? (
@@ -174,7 +174,7 @@ const Navbar = () => {
             ) : (
               <Link
                 to="/login"
-                className="text-indigo-600 font-medium"
+                className="text-indigo-600 dark:text-indigo-400 font-medium"
               >
                 Login
               </Link>
@@ -187,14 +187,13 @@ const Navbar = () => {
       {currentUser && menuOpen && (
         <div
           id="mobile-menu"
-          className="fixed inset-0 md:hidden bg-white dark:bg-gray-900"
-          style={{ zIndex: 99999, pointerEvents: 'auto' }}
+          className="fixed inset-0 md:hidden bg-white dark:bg-gray-900 z-[9999]"
         >
           <div className="container mx-auto px-4 py-6 h-full overflow-auto" style={{ paddingTop: 'env(safe-area-inset-top, 16px)' }}>
             <div className="flex justify-end mb-4">
               <button
                 onClick={() => setMenuOpen(false)}
-                className="p-2 rounded-md text-gray-700 hover:text-indigo-600 focus:outline-none"
+                className="p-2 rounded-md text-gray-700 dark:text-gray-200 hover:text-indigo-600 dark:hover:text-indigo-400 focus:outline-none"
                 aria-label="Close menu"
               >
                 <svg className="w-6 h-6" viewBox="0 0 24 24" fill="none" stroke="currentColor">
@@ -210,7 +209,7 @@ const Navbar = () => {
                 className={`block px-4 py-3 rounded-xl font-semibold transition-all duration-300 ${
                   isActive('/dashboard')
                     ? 'bg-gradient-to-r from-indigo-600 to-purple-600 text-white shadow-lg'
-                    : 'text-gray-700 hover:bg-indigo-50'
+                    : 'text-gray-700 dark:text-gray-200 hover:bg-indigo-50 dark:hover:bg-gray-800'
                 }`}
               >
                 📊 Dashboard
@@ -221,7 +220,7 @@ const Navbar = () => {
                 className={`block px-4 py-3 rounded-xl font-semibold transition-all duration-300 ${
                   isActive('/projects')
                     ? 'bg-gradient-to-r from-indigo-600 to-purple-600 text-white shadow-lg'
-                    : 'text-gray-700 hover:bg-indigo-50'
+                    : 'text-gray-700 dark:text-gray-200 hover:bg-indigo-50 dark:hover:bg-gray-800'
                 }`}
               >
                 🚀 Projects
@@ -232,7 +231,7 @@ const Navbar = () => {
                 className={`block px-4 py-3 rounded-xl font-semibold transition-all duration-300 ${
                   isActive('/profile')
                     ? 'bg-gradient-to-r from-indigo-600 to-purple-600 text-white shadow-lg'
-                    : 'text-gray-700 hover:bg-indigo-50'
+                    : 'text-gray-700 dark:text-gray-200 hover:bg-indigo-50 dark:hover:bg-gray-800'
                 }`}
               >
                 👤 Profile

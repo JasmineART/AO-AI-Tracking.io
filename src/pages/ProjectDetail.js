@@ -159,7 +159,7 @@ const ProjectDetail = () => {
                       : 'text-gray-600 hover:bg-gray-50'
                   }`}
                 >
-                  <span className="text-2xl">{tab.icon}</span>
+                  <span className="text-3xl">{tab.icon}</span>
                 </button>
               ))}
             </div>
