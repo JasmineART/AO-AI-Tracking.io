@@ -8,7 +8,11 @@ export const generateDemoData = () => {
       name: 'Customer Service AI Chatbot',
       status: 'In Progress',
       type: 'Automation',
-      dataSource: 'AWS',
+      dataSource: 'AWS', // Legacy field for backward compatibility
+      dataSources: [
+        { id: 1, type: 'AWS', icon: '☁️', connectionDetailOrUrl: 'https://aws.amazon.com/s3/bucket/chatbot-data', format: 'JSON', authType: 'API Key' },
+        { id: 2, type: 'PostgreSQL', icon: '🐘', connectionDetailOrUrl: 'prod-db.company.com:5432', format: 'SQL', authType: 'Basic Login (User/Pass)' }
+      ],
       readinessScore: 78,
       startDate: '2024-08-15',
       owner: 'Sarah Johnson',
@@ -19,7 +23,10 @@ export const generateDemoData = () => {
       name: 'Predictive Maintenance System',
       status: 'Completed',
       type: 'AI System',
-      dataSource: 'Azure',
+      dataSource: 'Azure', // Legacy field
+      dataSources: [
+        { id: 1, type: 'Azure', icon: '🔷', connectionDetailOrUrl: 'https://maintenance.blob.core.windows.net/data', format: 'Parquet', authType: 'OAuth 2.0' }
+      ],
       readinessScore: 92,
       startDate: '2024-05-01',
       owner: 'Michael Chen',
@@ -30,7 +37,10 @@ export const generateDemoData = () => {
       name: 'Invoice Processing Automation',
       status: 'In Progress',
       type: 'Automation',
-      dataSource: 'Google Sheets',
+      dataSource: 'Google Sheets', // Legacy field
+      dataSources: [
+        { id: 1, type: 'Google Sheets', icon: '📊', connectionDetailOrUrl: 'https://docs.google.com/spreadsheets/d/1BxdjHwEw_invoices/edit', format: 'CSV', authType: 'OAuth 2.0' }
+      ],
       readinessScore: 65,
       startDate: '2024-09-10',
       owner: 'Emily Rodriguez',
@@ -41,7 +51,11 @@ export const generateDemoData = () => {
       name: 'Inventory Optimization AI',
       status: 'Planning',
       type: 'AI System',
-      dataSource: 'Excel',
+      dataSource: 'Excel', // Legacy field
+      dataSources: [
+        { id: 1, type: 'Excel', icon: '📈', connectionDetailOrUrl: 'file://shared/inventory/data.xlsx', format: 'Excel', authType: 'None (Public/Local)' },
+        { id: 2, type: 'Snowflake', icon: '❄️', connectionDetailOrUrl: 'https://company.snowflakecomputing.com/warehouse', format: 'SQL', authType: 'API Key' }
+      ],
       readinessScore: 45,
       startDate: '2024-10-01',
       owner: 'David Kim',
@@ -52,7 +66,11 @@ export const generateDemoData = () => {
       name: 'HR Recruitment Assistant',
       status: 'In Progress',
       type: 'AI System',
-      dataSource: 'Salesforce',
+      dataSource: 'Salesforce', // Legacy field
+      dataSources: [
+        { id: 1, type: 'Salesforce', icon: '☁️', connectionDetailOrUrl: 'https://yourorg.salesforce.com/candidates', format: 'JSON', authType: 'OAuth 2.0' },
+        { id: 2, type: 'MongoDB', icon: '🍃', connectionDetailOrUrl: 'mongodb://hr-cluster.company.com:27017/recruitment', format: 'JSON', authType: 'Basic Login (User/Pass)' }
+      ],
       readinessScore: 71,
       startDate: '2024-07-20',
       owner: 'Lisa Thompson',

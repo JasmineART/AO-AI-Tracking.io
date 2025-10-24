@@ -1,11 +1,19 @@
 import React, { useState, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../contexts/AuthContext';
+import { useToast } from '../contexts/ToastContext';
+import { ProjectCardSkeleton } from '../components/SkeletonLoader';
+import { exportProjectsToPDF } from '../utils/pdfExport';
 import { getDemoData, addProject as addDemoProject, updateProject as updateDemoProject, deleteProject as deleteDemoProject } from '../utils/demoData';
 import { saveProjectToRealtimeDb, getUserProjectsFromRealtimeDb, updateProjectInRealtimeDb, deleteProjectFromRealtimeDb } from '../utils/realtimeDatabase';
 import { getAvailableDataSources } from '../utils/dataIntegration';
+import DataSourceConfig from '../components/DataSourceConfig';
+import AdminThemeToggle from '../components/AdminThemeToggle';
 
 const Projects = () => {
+  const navigate = useNavigate();
   const { currentUser } = useAuth();
+  const { success, error: showError, warning } = useToast();
   const [projects, setProjects] = useState([]);
   const [showAddModal, setShowAddModal] = useState(false);
   const [editingProject, setEditingProject] = useState(null);
@@ -16,7 +24,7 @@ const Projects = () => {
     name: '',
     type: 'AI System',
     status: 'Planning',
-    dataSource: 'AWS',
+    dataSources: [], // Changed from single dataSource to array
     owner: '',
     department: '',
     readinessScore: 50
@@ -41,6 +49,7 @@ const Projects = () => {
     } catch (error) {
       console.error('Error loading projects:', error);
       setProjects([]);
+      showError('Failed to load projects. Please refresh the page.');
     }
     setLoading(false);
   };
@@ -53,20 +62,30 @@ const Projects = () => {
   const handleSubmit = async (e) => {
     e.preventDefault();
     
+    // Validation
+    if (!formData.name.trim()) {
+      warning('Please enter a project name');
+      return;
+    }
+    
     try {
       if (currentUser?.isDemo) {
         // Demo user - use localStorage
         if (editingProject) {
           updateDemoProject(editingProject.id, formData);
+          success(`Project "${formData.name}" updated successfully!`);
         } else {
           addDemoProject(formData);
+          success(`Project "${formData.name}" created successfully!`);
         }
       } else if (currentUser) {
         // Real user - use Firebase Realtime Database
         if (editingProject) {
           await updateProjectInRealtimeDb(currentUser.uid, editingProject.id, formData);
+          success(`Project "${formData.name}" updated successfully!`);
         } else {
           await saveProjectToRealtimeDb(currentUser.uid, formData);
+          success(`Project "${formData.name}" created successfully!`);
         }
       }
       
@@ -74,7 +93,7 @@ const Projects = () => {
       resetForm();
     } catch (error) {
       console.error('Error saving project:', error);
-      alert('Failed to save project. Please try again.');
+      showError('Failed to save project. Please try again.');
     }
   };
 
@@ -84,7 +103,7 @@ const Projects = () => {
       name: project.name,
       type: project.type,
       status: project.status,
-      dataSource: project.dataSource,
+      dataSources: project.dataSources || [], // Support legacy single dataSource
       owner: project.owner,
       department: project.department,
       readinessScore: project.readinessScore
@@ -93,7 +112,10 @@ const Projects = () => {
   };
 
   const handleDelete = async (projectId) => {
-    if (window.confirm('Are you sure you want to delete this project?')) {
+    const project = projects.find(p => p.id === projectId);
+    const projectName = project?.name || 'this project';
+    
+    if (window.confirm(`Are you sure you want to delete "${projectName}"?`)) {
       try {
         if (currentUser?.isDemo) {
           deleteDemoProject(projectId);
@@ -101,10 +123,25 @@ const Projects = () => {
           await deleteProjectFromRealtimeDb(currentUser.uid, projectId);
         }
         await loadProjects();
+        success(`Project "${projectName}" deleted successfully!`);
       } catch (error) {
         console.error('Error deleting project:', error);
-        alert('Failed to delete project. Please try again.');
+        showError('Failed to delete project. Please try again.');
       }
+    }
+  };
+
+  const handleExportPDF = () => {
+    if (projects.length === 0) {
+      warning('No projects to export');
+      return;
+    }
+    
+    const result = exportProjectsToPDF(projects);
+    if (result) {
+      success(`Exported ${projects.length} projects to PDF successfully! 📄`);
+    } else {
+      showError('Failed to export PDF. Please try again.');
     }
   };
 
@@ -113,7 +150,7 @@ const Projects = () => {
       name: '',
       type: 'AI System',
       status: 'Planning',
-      dataSource: 'AWS',
+      dataSources: [],
       owner: '',
       department: '',
       readinessScore: 50
@@ -148,18 +185,35 @@ const Projects = () => {
             </h1>
             <p className="text-gray-600">Manage your AI and automation initiatives</p>
           </div>
-          <button
-            onClick={() => setShowAddModal(true)}
-            className="bg-gradient-to-r from-indigo-600 to-purple-600 text-white px-6 py-3 rounded-xl font-bold hover:shadow-2xl hover:scale-105 transition-all duration-300 transform flex items-center gap-2"
-          >
-            <span className="text-2xl">+</span> Add New Project
-          </button>
+          <div className="flex gap-3 items-center">
+            <AdminThemeToggle />
+            <button
+              onClick={handleExportPDF}
+              className="bg-gradient-to-r from-green-500 to-emerald-500 text-white px-6 py-3 rounded-xl font-bold hover:shadow-2xl hover:scale-105 transition-all duration-300 transform flex items-center gap-2"
+              title="Export Projects to PDF"
+            >
+              📄 Export PDF
+            </button>
+            <button
+              onClick={() => setShowAddModal(true)}
+              className="bg-gradient-to-r from-indigo-600 to-purple-600 text-white px-6 py-3 rounded-xl font-bold hover:shadow-2xl hover:scale-105 transition-all duration-300 transform flex items-center gap-2"
+            >
+              <span className="text-2xl">+</span> Add New Project
+            </button>
+          </div>
         </div>
 
         {/* Projects Grid */}
-        <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
-          {projects.map((project, idx) => (
-            <div key={project.id} className="group bg-white rounded-2xl shadow-lg overflow-hidden hover:shadow-2xl transition-all duration-300 hover:-translate-y-2 border border-gray-100 animate-fadeInUp" style={{animationDelay: `${idx * 0.05}s`}}>
+        {loading ? (
+          <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
+            {[...Array(6)].map((_, idx) => (
+              <ProjectCardSkeleton key={idx} />
+            ))}
+          </div>
+        ) : (
+          <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
+            {projects.map((project, idx) => (
+            <div key={project.id} onClick={() => navigate(`/project/${project.id}`)} className="group bg-white rounded-2xl shadow-lg overflow-hidden hover:shadow-2xl transition-all duration-300 hover:-translate-y-2 border border-gray-100 animate-fadeInUp cursor-pointer" style={{animationDelay: `${idx * 0.05}s`}}>
               <div className="p-6 relative">
                 {/* Status Badge with Gradient */}
                 <div className="absolute top-4 right-4">
@@ -185,9 +239,26 @@ const Projects = () => {
                     <div className="w-10 h-10 bg-gradient-to-br from-blue-100 to-indigo-100 rounded-lg flex items-center justify-center">
                       <span className="text-lg">💾</span>
                     </div>
-                    <div>
-                      <p className="text-xs text-gray-500 font-semibold">Data Source</p>
-                      <p className="font-bold text-gray-900">{project.dataSource}</p>
+                    <div className="flex-1">
+                      <p className="text-xs text-gray-500 font-semibold">Data Sources</p>
+                      {project.dataSources && project.dataSources.length > 0 ? (
+                        <div className="flex flex-wrap gap-1 mt-1">
+                          {project.dataSources.slice(0, 3).map((source, idx) => (
+                            <span key={idx} className="text-xs bg-indigo-100 text-indigo-700 px-2 py-0.5 rounded-full font-semibold">
+                              {source.icon || '📦'} {source.type}
+                            </span>
+                          ))}
+                          {project.dataSources.length > 3 && (
+                            <span className="text-xs bg-gray-100 text-gray-600 px-2 py-0.5 rounded-full font-semibold">
+                              +{project.dataSources.length - 3} more
+                            </span>
+                          )}
+                        </div>
+                      ) : project.dataSource ? (
+                        <p className="font-bold text-gray-900">{project.dataSource}</p>
+                      ) : (
+                        <p className="text-xs text-gray-400 italic">No data sources configured</p>
+                      )}
                     </div>
                   </div>
 
@@ -256,9 +327,10 @@ const Projects = () => {
               </div>
             </div>
           ))}
-        </div>
+          </div>
+        )}
 
-        {projects.length === 0 && (
+        {!loading && projects.length === 0 && (
           <div className="text-center py-20 animate-fadeInUp">
             <div className="text-8xl mb-6">📊</div>
             <p className="text-gray-500 text-xl mb-6">No projects yet. Let's get started!</p>
@@ -335,23 +407,11 @@ const Projects = () => {
                   </div>
                 </div>
 
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">
-                    Data Source *
-                  </label>
-                  <select
-                    name="dataSource"
-                    value={formData.dataSource}
-                    onChange={handleInputChange}
-                    className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent"
-                  >
-                    {dataSources.map(source => (
-                      <option key={source.id} value={source.id}>
-                        {source.icon} {source.name}
-                      </option>
-                    ))}
-                  </select>
-                </div>
+                {/* Data Source Configuration Component */}
+                <DataSourceConfig
+                  dataSources={formData.dataSources}
+                  setDataSources={(newSources) => setFormData({ ...formData, dataSources: newSources })}
+                />
 
                 <div className="grid md:grid-cols-2 gap-4">
                   <div>

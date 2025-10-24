@@ -1,10 +1,12 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../contexts/AuthContext';
+import { useToast } from '../contexts/ToastContext';
 import { getUserFromRealtimeDb, updateUserInRealtimeDb, listenToUserData } from '../utils/realtimeDatabase';
 
 const Profile = () => {
   const { currentUser, logout } = useAuth();
+  const { success, error: showError } = useToast();
   const navigate = useNavigate();
   const [userData, setUserData] = useState(null);
   const [loading, setLoading] = useState(true);
@@ -47,10 +49,10 @@ const Profile = () => {
       const updatedData = await getUserFromRealtimeDb(currentUser.uid);
       setUserData(updatedData);
       setEditMode(false);
-      alert('Profile updated successfully!');
+      success('Profile updated successfully! 🎉');
     } catch (error) {
       console.error('Error updating profile:', error);
-      alert('Failed to update profile. Please try again.');
+      showError('Failed to update profile. Please try again.');
     }
   };
 

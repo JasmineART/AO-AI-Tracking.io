@@ -1,6 +1,9 @@
 import React, { useEffect, useState, useCallback } from 'react';
 import { Link } from 'react-router-dom';
 import { useAuth } from '../contexts/AuthContext';
+import { useToast } from '../contexts/ToastContext';
+import { MetricCardSkeleton, ChartSkeleton } from '../components/SkeletonLoader';
+import { exportDashboardToPDF } from '../utils/pdfExport';
 import {
   Chart as ChartJS,
   CategoryScale,
@@ -112,12 +115,40 @@ const generateDashboardFromProjects = (projects) => {
 
 const Dashboard = () => {
   const { currentUser } = useAuth();
+  const { success, error: showError } = useToast();
   const [projects, setProjects] = useState([]);
   const [aiInsights, setAIInsights] = useState(null);
   const [dashboardData, setDashboardData] = useState(null);
   const [loading, setLoading] = useState(true);
   const [analyzing, setAnalyzing] = useState(false);
   const [lastUpdate, setLastUpdate] = useState(new Date());
+
+  const handleExportPDF = () => {
+    if (!aggregateMetrics || !departmentMetrics) {
+      showError('No data available to export');
+      return;
+    }
+    
+    const exportData = {
+      overallReadiness: aggregateMetrics.overallReadiness,
+      totalProjects: aggregateMetrics.totalProjects,
+      activeProjects: aggregateMetrics.activeProjects,
+      completedProjects: aggregateMetrics.completedProjects,
+      departments: departmentMetrics.map(dept => ({
+        name: dept.name,
+        projects: dept.count,
+        avgReadiness: dept.avgReadiness
+      })),
+      insights: aiInsights
+    };
+    
+    const result = exportDashboardToPDF(exportData);
+    if (result) {
+      success('Dashboard exported to PDF successfully! 📄');
+    } else {
+      showError('Failed to export PDF. Please try again.');
+    }
+  };
 
   // Load and analyze projects data
   const loadAndAnalyzeData = useCallback(async (projectsData) => {
@@ -340,22 +371,38 @@ const Dashboard = () => {
               </h1>
               <p className="text-gray-600 text-xl">Real-time enterprise AI and automation insights</p>
             </div>
-            <div className="hidden md:flex items-center gap-3 bg-white rounded-2xl shadow-lg px-6 py-4">
-              <div className="text-center">
-                <div className="text-3xl font-bold text-indigo-600">{aggregateMetrics.overallReadiness}%</div>
-                <div className="text-xs text-gray-500 font-semibold">READINESS</div>
-              </div>
-              <div className="w-px h-12 bg-gray-200"></div>
-              <div className="text-center">
-                <div className="text-3xl font-bold text-blue-600">{aggregateMetrics.totalProjects}</div>
-                <div className="text-xs text-gray-500 font-semibold">PROJECTS</div>
+            <div className="flex items-center gap-4">
+              <button
+                onClick={handleExportPDF}
+                className="bg-gradient-to-r from-green-500 to-emerald-500 text-white px-6 py-3 rounded-xl font-bold hover:shadow-xl hover:scale-105 transition-all duration-300 transform flex items-center gap-2"
+                title="Export Dashboard to PDF"
+              >
+                📄 Export PDF
+              </button>
+              <div className="hidden md:flex items-center gap-3 bg-white rounded-2xl shadow-lg px-6 py-4">
+                <div className="text-center">
+                  <div className="text-3xl font-bold text-indigo-600">{aggregateMetrics.overallReadiness}%</div>
+                  <div className="text-xs text-gray-500 font-semibold">READINESS</div>
+                </div>
+                <div className="w-px h-12 bg-gray-200"></div>
+                <div className="text-center">
+                  <div className="text-3xl font-bold text-blue-600">{aggregateMetrics.totalProjects}</div>
+                  <div className="text-xs text-gray-500 font-semibold">PROJECTS</div>
+                </div>
               </div>
             </div>
           </div>
         </div>
 
         {/* Enhanced Key Metrics Cards with Circular Progress */}
-        <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-6 mb-10">
+        {loading ? (
+          <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-6 mb-10">
+            {[...Array(4)].map((_, idx) => (
+              <MetricCardSkeleton key={idx} />
+            ))}
+          </div>
+        ) : (
+          <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-6 mb-10">
           {/* Overall Readiness - Circular Progress */}
           <div className="bg-white rounded-3xl shadow-xl p-8 transform hover:scale-105 transition-all duration-500 hover:shadow-2xl animate-fadeInUp border-2 border-indigo-100 relative overflow-hidden">
             <div className="absolute top-0 right-0 w-32 h-32 bg-gradient-to-br from-indigo-500/10 to-purple-500/10 rounded-full -mr-16 -mt-16"></div>
@@ -458,7 +505,8 @@ const Dashboard = () => {
               </div>
             </div>
           </div>
-        </div>
+          </div>
+        )}
 
         {/* AI Insights Section */}
         {aiInsights && (
@@ -674,7 +722,20 @@ const Dashboard = () => {
         )}
 
         {/* Charts Row 1 */}
-        <div className="grid lg:grid-cols-2 gap-6 mb-6">
+        {loading ? (
+          <>
+            <div className="grid lg:grid-cols-2 gap-6 mb-6">
+              <ChartSkeleton />
+              <ChartSkeleton />
+            </div>
+            <div className="grid lg:grid-cols-2 gap-6 mb-6">
+              <ChartSkeleton />
+              <ChartSkeleton />
+            </div>
+          </>
+        ) : (
+          <>
+            <div className="grid lg:grid-cols-2 gap-6 mb-6">
           {/* Trend Chart */}
           <div className="bg-white/90 backdrop-blur-sm rounded-2xl shadow-xl p-6 border border-gray-100 hover:shadow-2xl transition-all duration-300 animate-fadeInUp">
             <div className="flex items-center justify-between mb-6">
@@ -854,6 +915,8 @@ const Dashboard = () => {
             </div>
           </div>
         </div>
+          </>
+        )}
       </div>
     </div>
   );
