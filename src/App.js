@@ -24,11 +24,16 @@ function App() {
     
     // Run initial health check in background
     healthCheck.runFullCheck().catch(error => {
-      console.error('Initial health check failed:', error);
+      // Silently handle health check errors in production
+      if (process.env.NODE_ENV === 'development') {
+        console.error('Initial health check failed:', error);
+      }
     });
 
-    // Log app initialization
-    console.log('✅ App initialized with monitoring enabled');
+    // Log app initialization only in development
+    if (process.env.NODE_ENV === 'development') {
+      console.log('✅ App initialized with monitoring enabled');
+    }
   }, []);
 
   // Use basename for GitHub Pages deployment. Only use the repo basename

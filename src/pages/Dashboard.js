@@ -154,17 +154,13 @@ const Dashboard = () => {
   const loadAndAnalyzeData = useCallback(async (projectsData) => {
     setAnalyzing(true);
     try {
-      console.log('🔄 Analyzing projects data...', projectsData);
-      
       // Generate AI insights
       const insights = await generateAIInsights(projectsData);
       setAIInsights(insights);
-      console.log('✅ AI Insights generated:', insights);
       
       // Generate dashboard metrics
       const data = generateDashboardFromProjects(projectsData);
       setDashboardData(data);
-      console.log('✅ Dashboard data generated:', data);
       
       setLastUpdate(new Date());
     } catch (error) {
@@ -188,7 +184,6 @@ const Dashboard = () => {
           await loadAndAnalyzeData(data.projects || []);
         } else if (currentUser) {
           // Real user - set up real-time listener
-          console.log('🔥 Setting up real-time project listener...');
           
           // Initial load
           const initialProjects = await getUserProjectsFromRealtimeDb(currentUser.uid);
@@ -197,7 +192,6 @@ const Dashboard = () => {
           
           // Set up real-time listener for updates
           unsubscribe = listenToProjects(currentUser.uid, async (updatedProjects) => {
-            console.log('🔔 Projects updated in real-time!', updatedProjects);
             setProjects(updatedProjects);
             await loadAndAnalyzeData(updatedProjects);
           });
@@ -216,7 +210,6 @@ const Dashboard = () => {
     // Cleanup listener on unmount
     return () => {
       if (unsubscribe) {
-        console.log('🔌 Cleaning up real-time listener');
         unsubscribe();
       }
     };

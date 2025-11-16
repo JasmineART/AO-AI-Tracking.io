@@ -32,11 +32,15 @@ export const saveUserToRealtimeDb = async (user) => {
           notifications: true
         }
       });
-      console.log('✅ New user created in Realtime Database:', user.email);
+      if (process.env.NODE_ENV === 'development') {
+        console.log('✅ New user created in Realtime Database:', user.email);
+      }
     } else {
       // Existing user - update last login
       await update(userRef, { lastLogin: userData.lastLogin });
-      console.log('✅ User login updated in Realtime Database:', user.email);
+      if (process.env.NODE_ENV === 'development') {
+        console.log('✅ User login updated in Realtime Database:', user.email);
+      }
     }
 
     return userData;
@@ -57,7 +61,9 @@ export const getUserFromRealtimeDb = async (userId) => {
     if (snapshot.exists()) {
       return snapshot.val();
     } else {
-      console.log('No user data found in Realtime Database');
+      if (process.env.NODE_ENV === 'development') {
+        console.log('No user data found in Realtime Database');
+      }
       return null;
     }
   } catch (error) {
@@ -73,7 +79,9 @@ export const updateUserInRealtimeDb = async (userId, updates) => {
   try {
     const userRef = ref(realtimeDb, `users/${userId}`);
     await update(userRef, updates);
-    console.log('✅ User profile updated in Realtime Database');
+    if (process.env.NODE_ENV === 'development') {
+      console.log('✅ User profile updated in Realtime Database');
+    }
     return true;
   } catch (error) {
     console.error('❌ Error updating user in Realtime Database:', error);
@@ -112,11 +120,13 @@ export const saveProjectToRealtimeDb = async (userId, project) => {
       throw error;
     }
     
-    console.log('💾 Saving project to Firebase:', projectData);
+      if (process.env.NODE_ENV === 'development') {
+        console.log('💾 Saving project to Firebase:', projectData);
+      }    await set(newProjectRef, projectData);
     
-    await set(newProjectRef, projectData);
-    
-    console.log('✅ Project saved to Realtime Database');
+      if (process.env.NODE_ENV === 'development') {
+        console.log('✅ Project saved to Realtime Database');
+      }
     return newProjectRef.key;
   } catch (error) {
     console.error('❌ Error saving project to Realtime Database:', error);
@@ -144,7 +154,9 @@ export const getUserProjectsFromRealtimeDb = async (userId) => {
       }
       return [];
     } else {
-      console.log('No projects found for user, returning empty array');
+      if (process.env.NODE_ENV === 'development') {
+        console.log('No projects found for user, returning empty array');
+      }
       return [];
     }
   } catch (error) {
@@ -182,7 +194,9 @@ export const updateProjectInRealtimeDb = async (userId, projectId, updates) => {
 
     const projectRef = ref(realtimeDb, `users/${userId}/projects/${projectId}`);
     await update(projectRef, updatedProject);
-    console.log('✅ Project updated in Realtime Database');
+    if (process.env.NODE_ENV === 'development') {
+      console.log('✅ Project updated in Realtime Database');
+    }
     return true;
   } catch (error) {
     console.error('❌ Error updating project in Realtime Database:', error);
@@ -197,7 +211,9 @@ export const deleteProjectFromRealtimeDb = async (userId, projectId) => {
   try {
     const projectRef = ref(realtimeDb, `users/${userId}/projects/${projectId}`);
     await remove(projectRef);
-    console.log('✅ Project deleted from Realtime Database');
+    if (process.env.NODE_ENV === 'development') {
+      console.log('✅ Project deleted from Realtime Database');
+    }
     return true;
   } catch (error) {
     console.error('❌ Error deleting project from Realtime Database:', error);
@@ -251,7 +267,9 @@ export const deleteUserFromRealtimeDb = async (userId) => {
   try {
     const userRef = ref(realtimeDb, `users/${userId}`);
     await remove(userRef);
-    console.log('✅ User data deleted from Realtime Database');
+    if (process.env.NODE_ENV === 'development') {
+      console.log('✅ User data deleted from Realtime Database');
+    }
     return true;
   } catch (error) {
     console.error('❌ Error deleting user from Realtime Database:', error);

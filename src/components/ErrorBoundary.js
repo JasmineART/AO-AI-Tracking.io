@@ -5,6 +5,7 @@
 
 import React from 'react';
 import errorMonitor from '../utils/errorMonitoring';
+import { isProduction, reportError, devError } from '../utils/production';
 
 class ErrorBoundary extends React.Component {
   constructor(props) {
@@ -13,7 +14,8 @@ class ErrorBoundary extends React.Component {
       hasError: false,
       error: null,
       errorInfo: null,
-      errorCount: 0
+      errorCount: 0,
+      errorId: null
     };
   }
 
@@ -22,22 +24,34 @@ class ErrorBoundary extends React.Component {
   }
 
   componentDidCatch(error, errorInfo) {
+    const errorId = Date.now().toString();
+    
     // Log error to monitoring system
     errorMonitor.logError({
       type: 'React Component Error',
       message: error.message,
       stack: error.stack,
       componentStack: errorInfo.componentStack,
-      timestamp: new Date().toISOString()
+      timestamp: new Date().toISOString(),
+      errorId
+    });
+
+    // Report to external service in production
+    reportError(error, {
+      componentStack: errorInfo.componentStack,
+      errorId,
+      props: this.props
     });
 
     this.setState(prevState => ({
       error,
       errorInfo,
-      errorCount: prevState.errorCount + 1
+      errorCount: prevState.errorCount + 1,
+      errorId
     }));
 
-    console.error('Error caught by boundary:', error, errorInfo);
+    // Only log to console in development
+    devError('Error caught by boundary:', error, errorInfo);
   }
 
   handleReset = () => {
@@ -68,7 +82,7 @@ class ErrorBoundary extends React.Component {
               </p>
             </div>
 
-            {process.env.NODE_ENV === 'development' && this.state.error && (
+            {!isProduction() && this.state.error && (
               <div className="bg-red-50 border-l-4 border-red-500 rounded-lg p-4 mb-6">
                 <h3 className="font-bold text-red-800 mb-2">Error Details (Development Only):</h3>
                 <pre className="text-xs text-red-700 overflow-auto max-h-48">
@@ -78,24 +92,39 @@ class ErrorBoundary extends React.Component {
               </div>
             )}
 
-            <div className="flex gap-4 justify-center">
+            {isProduction() && (
+              <div className="bg-blue-50 border-l-4 border-blue-500 rounded-lg p-4 mb-6">
+                <p className="text-blue-800 text-sm">
+                  📧 This error has been automatically reported to our team. 
+                  We'll work on fixing it as soon as possible.
+                </p>
+              </div>
+            )}
+
+            <div className="flex gap-4 justify-center flex-wrap">
               <button
                 onClick={this.handleReset}
-                className="px-6 py-3 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 transition-colors font-semibold"
+                className="px-6 py-3 bg-gradient-to-r from-indigo-600 to-purple-600 text-white rounded-xl hover:shadow-lg transition-all font-bold"
               >
-                Try Again
+                🔄 Try Again
               </button>
               <button
                 onClick={() => window.location.href = '/'}
-                className="px-6 py-3 bg-gray-200 text-gray-800 rounded-lg hover:bg-gray-300 transition-colors font-semibold"
+                className="px-6 py-3 bg-gray-200 text-gray-800 rounded-xl hover:bg-gray-300 transition-all font-bold"
               >
-                Go Home
+                🏠 Go Home
+              </button>
+              <button
+                onClick={() => window.location.reload()}
+                className="px-6 py-3 bg-green-600 text-white rounded-xl hover:bg-green-700 transition-all font-bold"
+              >
+                ↻ Refresh Page
               </button>
             </div>
 
             <div className="mt-8 text-center text-sm text-gray-500">
-              <p>Error ID: {Date.now()}</p>
-              <p>If this problem persists, please contact support.</p>
+              <p>Error ID: {this.state.errorId || 'Unknown'}</p>
+              <p>If this problem persists, please contact support with the Error ID above.</p>
             </div>
           </div>
         </div>

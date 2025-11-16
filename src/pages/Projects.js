@@ -213,8 +213,11 @@ const Projects = () => {
         ) : (
           <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
             {projects.map((project, idx) => (
-            <div key={project.id} onClick={() => navigate(`/project/${project.id}`)} className="group bg-white rounded-2xl shadow-lg overflow-hidden hover:shadow-2xl transition-all duration-300 hover:-translate-y-2 border border-gray-100 animate-fadeInUp cursor-pointer" style={{animationDelay: `${idx * 0.05}s`}}>
-              <div className="p-6 relative">
+            <div key={project.id} className="group bg-white rounded-2xl shadow-lg overflow-hidden hover:shadow-2xl transition-all duration-300 hover:-translate-y-2 border border-gray-100 animate-fadeInUp cursor-pointer" style={{animationDelay: `${idx * 0.05}s`}}>
+              <div 
+                className="p-6 relative" 
+                onClick={() => navigate(`/project/${project.id}`)}
+              >
                 {/* Status Badge with Gradient */}
                 <div className="absolute top-4 right-4">
                   <span className={`px-4 py-2 rounded-full text-xs font-bold shadow-lg ${getStatusColor(project.status)}`}>
@@ -312,13 +315,19 @@ const Projects = () => {
 
                 <div className="flex gap-3 mt-6 pt-6 border-t border-gray-100">
                   <button
-                    onClick={() => handleEdit(project)}
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      handleEdit(project);
+                    }}
                     className="flex-1 bg-gradient-to-r from-indigo-600 to-purple-600 text-white px-4 py-3 rounded-xl font-bold hover:shadow-xl hover:scale-105 transition-all duration-300 transform"
                   >
                     ✏️ Edit
                   </button>
                   <button
-                    onClick={() => handleDelete(project.id)}
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      handleDelete(project.id);
+                    }}
                     className="flex-1 bg-gradient-to-r from-red-500 to-pink-500 text-white px-4 py-3 rounded-xl font-bold hover:shadow-xl hover:scale-105 transition-all duration-300 transform"
                   >
                     🗑️ Delete

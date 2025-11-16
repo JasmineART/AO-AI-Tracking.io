@@ -40,7 +40,9 @@ class ErrorMonitor {
     this.setupReactErrorHandler();
 
     this.initialized = true;
-    console.log('✅ Error monitoring initialized');
+    if (process.env.NODE_ENV === 'development') {
+      console.log('✅ Error monitoring initialized');
+    }
   }
 
   setupReactErrorHandler() {
