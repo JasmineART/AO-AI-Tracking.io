@@ -18,6 +18,32 @@ export const useAuth = () => {
 export const AuthProvider = ({ children }) => {
   const [currentUser, setCurrentUser] = useState(null);
   const [loading, setLoading] = useState(true);
+  const [authError, setAuthError] = useState(null);
+
+  // Network error handling helper
+  const isNetworkError = (error) => {
+    return (
+      error.code === 'auth/network-request-failed' ||
+      error.message?.includes('network') ||
+      error.message?.includes('offline') ||
+      !navigator.onLine
+    );
+  };
+
+  // Retry mechanism for network failures
+  const retryOperation = async (operation, maxRetries = 3, delay = 1000) => {
+    for (let i = 0; i < maxRetries; i++) {
+      try {
+        return await operation();
+      } catch (error) {
+        if (!isNetworkError(error) || i === maxRetries - 1) {
+          throw error;
+        }
+        // Wait before retrying
+        await new Promise(resolve => setTimeout(resolve, delay * (i + 1)));
+      }
+    }
+  };
 
   // Save user data to Realtime Database
   const saveUserToDatabase = async (user) => {
@@ -33,48 +59,88 @@ export const AuthProvider = ({ children }) => {
 
   const signInWithGoogle = async () => {
     try {
-      const result = await signInWithPopup(auth, googleProvider);
+      const result = await retryOperation(async () => {
+        return await signInWithPopup(auth, googleProvider);
+      });
       await saveUserToDatabase(result.user);
+      setAuthError(null);
       return result;
     } catch (error) {
       console.error('Error signing in with Google:', error);
+      if (isNetworkError(error)) {
+        const networkError = new Error('Network connection failed. Please check your internet connection and try again.');
+        networkError.code = 'auth/network-error';
+        setAuthError(networkError);
+        throw networkError;
+      }
+      setAuthError(error);
       throw error;
     }
   };
 
   const signInWithGithub = async () => {
     try {
-      const result = await signInWithPopup(auth, githubProvider);
+      const result = await retryOperation(async () => {
+        return await signInWithPopup(auth, githubProvider);
+      });
       await saveUserToDatabase(result.user);
+      setAuthError(null);
       return result;
     } catch (error) {
       console.error('Error signing in with GitHub:', error);
+      if (isNetworkError(error)) {
+        const networkError = new Error('Network connection failed. Please check your internet connection and try again.');
+        networkError.code = 'auth/network-error';
+        setAuthError(networkError);
+        throw networkError;
+      }
+      setAuthError(error);
       throw error;
     }
   };
 
   const signInWithEmail = async (email, password) => {
     try {
-      const result = await signInWithEmailAndPassword(auth, email, password);
+      const result = await retryOperation(async () => {
+        return await signInWithEmailAndPassword(auth, email, password);
+      });
       await saveUserToDatabase(result.user);
+      setAuthError(null);
       return result;
     } catch (error) {
       console.error('Error signing in with email:', error);
+      if (isNetworkError(error)) {
+        const networkError = new Error('Network connection failed. Please check your internet connection and try again.');
+        networkError.code = 'auth/network-error';
+        setAuthError(networkError);
+        throw networkError;
+      }
+      setAuthError(error);
       throw error;
     }
   };
 
   const signUpWithEmail = async (email, password, displayName = null) => {
     try {
-      const result = await createUserWithEmailAndPassword(auth, email, password);
+      const result = await retryOperation(async () => {
+        return await createUserWithEmailAndPassword(auth, email, password);
+      });
       const userWithName = {
         ...result.user,
         displayName: displayName || email.split('@')[0]
       };
       await saveUserToDatabase(userWithName);
+      setAuthError(null);
       return result;
     } catch (error) {
       console.error('Error signing up with email:', error);
+      if (isNetworkError(error)) {
+        const networkError = new Error('Network connection failed. Please check your internet connection and try again.');
+        networkError.code = 'auth/network-error';
+        setAuthError(networkError);
+        throw networkError;
+      }
+      setAuthError(error);
       throw error;
     }
   };
@@ -126,20 +192,59 @@ export const AuthProvider = ({ children }) => {
       return;
     }
 
+    // Monitor network connectivity and attempt to recover auth state
+    const handleOnline = () => {
+      if (process.env.NODE_ENV === 'development') {
+        console.log('✅ Network reconnected, auth state will be restored');
+      }
+      // Force auth state check when coming back online
+      if (auth.currentUser) {
+        setCurrentUser(auth.currentUser);
+        saveUserToDatabase(auth.currentUser).catch(error => {
+          console.error('Error saving user after reconnection:', error);
+        });
+      }
+    };
+
+    const handleOffline = () => {
+      if (process.env.NODE_ENV === 'development') {
+        console.log('⚠️ Network disconnected, auth state preserved locally');
+      }
+      setAuthError(new Error('You are currently offline. Some features may be limited.'));
+    };
+
+    // Add network event listeners
+    window.addEventListener('online', handleOnline);
+    window.addEventListener('offline', handleOffline);
+
     const unsubscribe = onAuthStateChanged(auth, async (user) => {
       if (user && !user.isDemo) {
-        // Save/update user in database on auth state change
-        await saveUserToDatabase(user);
+        try {
+          // Save/update user in database on auth state change
+          await saveUserToDatabase(user);
+          setAuthError(null);
+        } catch (error) {
+          // Don't fail auth state update if database save fails
+          console.error('Error saving user to database:', error);
+          if (!isNetworkError(error)) {
+            setAuthError(error);
+          }
+        }
       }
       setCurrentUser(user);
       setLoading(false);
     });
 
-    return unsubscribe;
+    return () => {
+      unsubscribe();
+      window.removeEventListener('online', handleOnline);
+      window.removeEventListener('offline', handleOffline);
+    };
   }, []);
 
   const value = {
     currentUser,
+    authError,
     signInWithGoogle,
     signInWithGithub,
     signInWithEmail,

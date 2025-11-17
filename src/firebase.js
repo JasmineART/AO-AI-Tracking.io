@@ -1,5 +1,5 @@
 import { initializeApp } from 'firebase/app';
-import { getAuth, GoogleAuthProvider, GithubAuthProvider } from 'firebase/auth';
+import { getAuth, GoogleAuthProvider, GithubAuthProvider, setPersistence, browserLocalPersistence } from 'firebase/auth';
 import { getFirestore } from 'firebase/firestore';
 import { getDatabase } from 'firebase/database';
 import { getAnalytics } from 'firebase/analytics';
@@ -39,8 +39,30 @@ if (process.env.REACT_APP_ENABLE_ANALYTICS !== 'false' && typeof window !== 'und
 
 // Initialize Firebase Authentication and get a reference to the service
 export const auth = getAuth(app);
+
+// Set auth persistence to LOCAL (persists even when browser is closed)
+// This prevents users from being logged out after closing/refreshing the browser
+setPersistence(auth, browserLocalPersistence)
+  .then(() => {
+    if (process.env.NODE_ENV === 'development') {
+      console.log('✅ Firebase Auth persistence set to LOCAL');
+    }
+  })
+  .catch((error) => {
+    console.error('❌ Error setting auth persistence:', error);
+  });
+
 export const googleProvider = new GoogleAuthProvider();
 export const githubProvider = new GithubAuthProvider();
+
+// Configure OAuth providers for better UX
+googleProvider.setCustomParameters({
+  prompt: 'select_account'
+});
+
+githubProvider.setCustomParameters({
+  allow_signup: 'true'
+});
 
 // Initialize Cloud Firestore and get a reference to the service
 export const db = getFirestore(app);

@@ -72,9 +72,10 @@ class HealthCheck {
 
   async checkDatabase() {
     try {
-      // Test database connection
-      const testRef = database.ref('.info/connected');
-      const snapshot = await testRef.once('value');
+      // Test database connection using modern Firebase SDK
+      const { ref, get } = await import('firebase/database');
+      const connectedRef = ref(database, '.info/connected');
+      const snapshot = await get(connectedRef);
       
       if (snapshot.val() === true) {
         this.checks.database = {
