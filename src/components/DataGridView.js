@@ -17,10 +17,23 @@ const DataGridView = ({ project }) => {
   }, [project, selectedDataSource]);
 
   const loadData = () => {
-    // Get generated data for this project
-    const projectData = getProjectData(project, selectedDataSource);
-    setData(projectData.rows);
-    setColumns(projectData.columns);
+    // Check if project has existing data
+    if (project.gridData && project.gridData.rows && project.gridData.rows.length > 0) {
+      // Load existing saved data
+      setData(project.gridData.rows);
+      setColumns(project.gridData.columns);
+    } else {
+      // Initialize empty grid with basic columns for new projects
+      const defaultColumns = [
+        { key: 'id', label: 'ID' },
+        { key: 'name', label: 'Name' },
+        { key: 'value', label: 'Value' },
+        { key: 'status', label: 'Status' },
+        { key: 'date', label: 'Date' }
+      ];
+      setColumns(defaultColumns);
+      setData([]); // Start with empty data array
+    }
   };
 
   const handleCellEdit = (rowIndex, columnKey) => {
@@ -66,6 +79,19 @@ const DataGridView = ({ project }) => {
     });
     setData([...data, newRow]);
     success('New row added successfully');
+  };
+
+  const handleLoadSampleData = () => {
+    if (data.length > 0) {
+      const confirmLoad = window.confirm('This will replace existing data with sample data. Are you sure?');
+      if (!confirmLoad) return;
+    }
+    
+    // Get generated sample data for this project
+    const projectData = getProjectData(project, selectedDataSource);
+    setData(projectData.rows);
+    setColumns(projectData.columns);
+    success(`Loaded ${projectData.rows.length} sample rows successfully! 📊`);
   };
 
   const handleDeleteRow = (rowIndex) => {
@@ -149,9 +175,19 @@ const DataGridView = ({ project }) => {
             >
               ➕ Add Row
             </button>
+            {data.length === 0 && (
+              <button
+                onClick={handleLoadSampleData}
+                className="bg-gradient-to-r from-yellow-500 to-orange-600 text-white px-4 py-2 rounded-lg font-semibold text-sm hover:shadow-lg transition-all flex items-center gap-2"
+                title="Load sample data to see how it works"
+              >
+                🎲 Load Sample Data
+              </button>
+            )}
             <button
               onClick={handleExport}
               className="bg-gradient-to-r from-blue-500 to-indigo-600 text-white px-4 py-2 rounded-lg font-semibold text-sm hover:shadow-lg transition-all flex items-center gap-2"
+              disabled={data.length === 0}
             >
               📥 Export CSV
             </button>
@@ -270,8 +306,20 @@ const DataGridView = ({ project }) => {
                 ))
               ) : (
                 <tr>
-                  <td colSpan={columns.length + 2} className="px-4 py-12 text-center text-gray-500">
-                    {filterText ? '🔍 No matching data found' : '📊 No data available'}
+                  <td colSpan={columns.length + 2} className="px-4 py-12 text-center">
+                    {filterText ? (
+                      <div className="text-gray-500">
+                        <div className="text-4xl mb-2">🔍</div>
+                        <p>No matching data found</p>
+                      </div>
+                    ) : (
+                      <div className="text-gray-500">
+                        <div className="text-6xl mb-4">📊</div>
+                        <p className="text-lg font-semibold mb-2">No data yet - Start fresh!</p>
+                        <p className="text-sm mb-4">Click "➕ Add Row" to add your first data entry</p>
+                        <p className="text-xs text-gray-400">or use "🎲 Load Sample Data" to see an example</p>
+                      </div>
+                    )}
                   </td>
                 </tr>
               )}

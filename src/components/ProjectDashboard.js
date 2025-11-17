@@ -2,9 +2,27 @@ import React, { useState } from 'react';
 import { getProjectRoadmapData } from '../utils/projectDataGenerator';
 
 const ProjectDashboard = ({ project }) => {
-  const roadmapData = getProjectRoadmapData(project);
+  // Check if project has existing roadmap data, otherwise use defaults
+  const roadmapData = project.roadmapData || {
+    stats: {
+      totalTasks: 0,
+      completedTasks: 0,
+      inProgressTasks: 0,
+      progress: 0
+    },
+    phases: []
+  };
+  
   const [selectedPhase, setSelectedPhase] = useState(null);
   const [showAddMilestone, setShowAddMilestone] = useState(false);
+  const [showLoadSample, setShowLoadSample] = useState(roadmapData.phases.length === 0);
+
+  const handleLoadSampleRoadmap = () => {
+    // Load sample roadmap data from generator
+    const sampleData = getProjectRoadmapData(project);
+    project.roadmapData = sampleData;
+    window.location.reload(); // Simple reload to show sample data
+  };
 
   const getPhaseColor = (status) => {
     const colors = {
@@ -67,12 +85,22 @@ const ProjectDashboard = ({ project }) => {
       <div className="bg-white rounded-xl shadow-lg p-6 border border-gray-200">
         <div className="flex items-center justify-between mb-6">
           <h2 className="text-2xl font-bold text-gray-900">🗺️ Project Roadmap</h2>
-          <button
-            onClick={() => setShowAddMilestone(!showAddMilestone)}
-            className="bg-gradient-to-r from-indigo-600 to-purple-600 text-white px-4 py-2 rounded-lg font-semibold text-sm hover:shadow-lg transition-all"
-          >
-            {showAddMilestone ? '❌ Cancel' : '➕ Add Milestone'}
-          </button>
+          <div className="flex gap-2">
+            {showLoadSample && (
+              <button
+                onClick={handleLoadSampleRoadmap}
+                className="bg-gradient-to-r from-yellow-500 to-orange-600 text-white px-4 py-2 rounded-lg font-semibold text-sm hover:shadow-lg transition-all"
+              >
+                🎲 Load Sample Roadmap
+              </button>
+            )}
+            <button
+              onClick={() => setShowAddMilestone(!showAddMilestone)}
+              className="bg-gradient-to-r from-indigo-600 to-purple-600 text-white px-4 py-2 rounded-lg font-semibold text-sm hover:shadow-lg transition-all"
+            >
+              {showAddMilestone ? '❌ Cancel' : '➕ Add Milestone'}
+            </button>
+          </div>
         </div>
 
         {showAddMilestone && (
@@ -102,7 +130,8 @@ const ProjectDashboard = ({ project }) => {
 
         {/* Phase Timeline */}
         <div className="space-y-4">
-          {roadmapData.phases.map((phase, idx) => (
+          {roadmapData.phases.length > 0 ? (
+            roadmapData.phases.map((phase, idx) => (
             <div key={idx} className="relative">
               <div
                 className={`rounded-xl p-6 cursor-pointer transition-all duration-300 ${
@@ -190,7 +219,15 @@ const ProjectDashboard = ({ project }) => {
                 </div>
               )}
             </div>
-          ))}
+          ))
+          ) : (
+            <div className="text-center py-12">
+              <div className="text-6xl mb-4">🗺️</div>
+              <p className="text-lg font-semibold text-gray-700 mb-2">No roadmap defined yet</p>
+              <p className="text-sm text-gray-500 mb-4">Start planning your project by adding milestones</p>
+              <p className="text-xs text-gray-400">or click "🎲 Load Sample Roadmap" to see an example</p>
+            </div>
+          )}
         </div>
       </div>
 
