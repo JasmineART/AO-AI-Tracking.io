@@ -1,21 +1,58 @@
+/**
+ * Navbar Component
+ * Main navigation bar for the application
+ * 
+ * Features:
+ * - Responsive design (desktop & mobile)
+ * - Authentication-aware menu items
+ * - Dark/light theme toggle
+ * - Mobile slide-out menu with backdrop
+ * - Smooth animations and transitions
+ */
+
+/**
+ * Navbar Component
+ * 
+ * Main navigation bar with:
+ * - Responsive design (desktop & mobile)
+ * - Authentication-aware menu items
+ * - Dark/light theme toggle
+ * - Mobile slide-out menu with backdrop
+ * 
+ * Navigation Items:
+ * - Unauthenticated: Home, Login
+ * - Authenticated: Dashboard, Projects, Profile, Theme, Logout
+ */
 import React, { useState, useEffect } from 'react';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
 import { useAuth } from '../contexts/AuthContext';
 import { useToast } from '../contexts/ToastContext';
 import { useTheme } from '../contexts/ThemeContext';
 import Z_INDEX from '../utils/zIndexLayers';
+import { AUTHENTICATED_NAV_ITEMS, UNAUTHENTICATED_NAV_ITEMS, getButtonText } from '../utils/navigationConfig';
 
 const Navbar = () => {
+  // ============ Contexts & Hooks ============
   const { currentUser, logout } = useAuth();
   const { success, error: showError } = useToast();
   const { isDark, toggleTheme } = useTheme();
   const location = useLocation();
   const navigate = useNavigate();
+  
+  // ============ Local State ============
+  /** Controls mobile menu visibility */
   const [menuOpen, setMenuOpen] = useState(false);
 
+  // ============ Event Handlers ============
+  /**
+   * Handles user logout
+   * - Clears authentication state
+   * - Shows success message
+   * - Redirects to home page
+   */
   const handleLogout = async () => {
     try {
-      // AuthContext logout() now handles all cleanup including demo state
+      // AuthContext logout() handles all cleanup including demo state
       await logout();
       success('Successfully logged out. See you soon! 👋');
       navigate('/');
@@ -25,11 +62,21 @@ const Navbar = () => {
     }
   };
 
+  // ============ Effects ============
+  /**
+   * Close mobile menu when route changes
+   * Ensures menu auto-closes during navigation
+   */
   // Close mobile menu when navigating (route change)
   useEffect(() => {
     setMenuOpen(false);
   }, [location.pathname]);
 
+  /**
+   * Lock body scroll when mobile menu is open
+   * Prevents background scrolling on mobile devices (especially iOS Safari)
+   * Restores scroll position on menu close
+   */
   // Lock body scroll when menu is open (helps on iOS Safari)
   useEffect(() => {
     if (typeof document === 'undefined') return;
@@ -58,15 +105,22 @@ const Navbar = () => {
     };
   }, [menuOpen]);
 
+  /**
+   * Check if a path matches current location
+   * Used to highlight active navigation items
+   * @param {string} path - Route path to check
+   * @returns {boolean} True if path is active
+   */
   const isActive = (path) => {
     return location.pathname === path;
   };
 
+  // ============ Render ============
   return (
     <nav className="bg-white/80 dark:bg-gray-800/80 backdrop-blur-lg shadow-lg sticky top-0 border-b border-gray-200 dark:border-gray-700 transition-colors duration-300" style={{ zIndex: Z_INDEX.NAVBAR }}>
       <div className="container mx-auto px-4">
         <div className="flex justify-between items-center h-16">
-          {/* Logo */}
+          {/* ========== Logo / Branding ========== */}
           <Link to="/" className="flex items-center gap-3 group">
             <div className="w-10 h-10 bg-gradient-to-br from-indigo-600 to-purple-600 rounded-xl flex items-center justify-center shadow-lg transform group-hover:scale-110 transition-transform duration-300">
               <span className="text-2xl">🤖</span>
@@ -76,7 +130,8 @@ const Navbar = () => {
             </span>
           </Link>
 
-          {/* Navigation Links */}
+          {/* ========== Desktop Navigation ========== */}
+          {/* Shows full nav items on desktop, hidden on mobile */}
           <div className="hidden md:flex items-center gap-2">
             {currentUser ? (
               <>
