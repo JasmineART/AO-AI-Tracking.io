@@ -86,8 +86,9 @@ const Profile = () => {
               {currentUser.photoURL ? (
                 <img
                   src={currentUser.photoURL}
-                  alt="Profile"
+                  alt={`${currentUser.displayName || 'User'} profile picture`}
                   className="w-28 h-28 rounded-2xl border-4 border-indigo-200 shadow-xl transform hover:scale-110 transition-transform duration-300"
+                  loading="lazy"
                 />
               ) : (
                 <div className="w-28 h-28 rounded-2xl bg-gradient-to-br from-indigo-500 to-purple-600 flex items-center justify-center shadow-xl transform hover:scale-110 transition-transform duration-300">
@@ -233,8 +234,15 @@ const Profile = () => {
                 <p className="font-medium text-gray-900">Email Notifications</p>
                 <p className="text-sm text-gray-500">Receive updates about your projects</p>
               </div>
-              <label className="relative inline-flex items-center cursor-pointer">
-                <input type="checkbox" className="sr-only peer" defaultChecked />
+              <label className="relative inline-flex items-center cursor-pointer" htmlFor="email-notifications">
+                <input 
+                  id="email-notifications"
+                  type="checkbox" 
+                  className="sr-only peer" 
+                  defaultChecked
+                  aria-label="Enable email notifications"
+                  aria-checked={true}
+                />
                 <div className="w-11 h-6 bg-gray-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-indigo-300 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-indigo-600"></div>
               </label>
             </div>
@@ -244,8 +252,15 @@ const Profile = () => {
                 <p className="font-medium text-gray-900">Weekly Reports</p>
                 <p className="text-sm text-gray-500">Get weekly AI readiness summaries</p>
               </div>
-              <label className="relative inline-flex items-center cursor-pointer">
-                <input type="checkbox" className="sr-only peer" defaultChecked />
+              <label className="relative inline-flex items-center cursor-pointer" htmlFor="weekly-reports">
+                <input 
+                  id="weekly-reports"
+                  type="checkbox" 
+                  className="sr-only peer" 
+                  defaultChecked
+                  aria-label="Enable weekly reports"
+                  aria-checked={true}
+                />
                 <div className="w-11 h-6 bg-gray-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-indigo-300 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-indigo-600"></div>
               </label>
             </div>
@@ -255,8 +270,15 @@ const Profile = () => {
                 <p className="font-medium text-gray-900">Dashboard Alerts</p>
                 <p className="text-sm text-gray-500">Alert when metrics fall below threshold</p>
               </div>
-              <label className="relative inline-flex items-center cursor-pointer">
-                <input type="checkbox" className="sr-only peer" />
+              <label className="relative inline-flex items-center cursor-pointer" htmlFor="dashboard-alerts">
+                <input 
+                  id="dashboard-alerts"
+                  type="checkbox" 
+                  className="sr-only peer"
+                  defaultChecked
+                  aria-label="Enable dashboard alerts"
+                  aria-checked={true}
+                />
                 <div className="w-11 h-6 bg-gray-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-indigo-300 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-indigo-600"></div>
               </label>
             </div>

@@ -285,13 +285,13 @@ const DataSourceConfig = ({ dataSources, setDataSources }) => {
 
           {/* Collapsible Form */}
           {showAddForm && (
-        <div className="bg-gradient-to-br from-indigo-50 to-purple-50 rounded-lg p-4 border-2 border-indigo-200 space-y-3 animate-fadeInUp">
+        <div className="bg-gradient-to-br from-indigo-50 to-purple-50 rounded-lg p-3 md:p-4 border-2 border-indigo-200 space-y-3 animate-fadeInUp">
           <p className="text-sm font-bold text-indigo-900 flex items-center gap-2">
             🔌 Configure New Data Source Connection
           </p>
 
           {/* File Upload Section */}
-          <div className="bg-white rounded-lg p-4 border-2 border-dashed border-indigo-300 hover:border-indigo-500 transition-all">
+          <div className="bg-white rounded-lg p-3 md:p-4 border-2 border-dashed border-indigo-300 hover:border-indigo-500 transition-all">
             <div className="text-center">
               <div className="mb-3">
                 <span className="text-4xl">📁</span>
@@ -358,17 +358,17 @@ const DataSourceConfig = ({ dataSources, setDataSources }) => {
             <div className="flex-1 border-t border-indigo-300"></div>
           </div>
 
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+          <div className="grid grid-cols-1 gap-3">
             {/* Source Type */}
             <div>
-              <label className="block text-xs font-semibold text-gray-700 mb-1">
+              <label className="block text-xs md:text-sm font-semibold text-gray-700 mb-1">
                 Data Source Type *
               </label>
               <select
                 name="type"
                 value={newSource.type}
                 onChange={handleNewSourceChange}
-                className="w-full px-3 py-2 rounded-lg border-2 border-gray-300 shadow-sm text-sm focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500"
+                className="w-full px-3 py-2 md:py-3 rounded-lg border-2 border-gray-300 shadow-sm text-sm focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500"
               >
                 {DATA_SOURCE_TYPES.map(s => (
                   <option key={s.value} value={s.value}>
@@ -380,14 +380,14 @@ const DataSourceConfig = ({ dataSources, setDataSources }) => {
 
             {/* Auth Type */}
             <div>
-              <label className="block text-xs font-semibold text-gray-700 mb-1">
+              <label className="block text-xs md:text-sm font-semibold text-gray-700 mb-1">
                 Authentication Type *
               </label>
               <select
                 name="authType"
                 value={newSource.authType}
                 onChange={handleNewSourceChange}
-                className="w-full px-3 py-2 rounded-lg border-2 border-gray-300 shadow-sm text-sm focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500"
+                className="w-full px-3 py-2 md:py-3 rounded-lg border-2 border-gray-300 shadow-sm text-sm focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500"
               >
                 {AUTH_TYPES.map(a => (
                   <option key={a} value={a}>{a}</option>
@@ -396,8 +396,8 @@ const DataSourceConfig = ({ dataSources, setDataSources }) => {
             </div>
 
             {/* Connection Detail/URL */}
-            <div className="md:col-span-2">
-              <label className="block text-xs font-semibold text-gray-700 mb-1">
+            <div>
+              <label className="block text-xs md:text-sm font-semibold text-gray-700 mb-1">
                 Connection URL / Endpoint / Path *
               </label>
               <input
@@ -406,14 +406,14 @@ const DataSourceConfig = ({ dataSources, setDataSources }) => {
                 placeholder={getDetailsPlaceholder(newSource.type)}
                 value={newSource.connectionDetailOrUrl}
                 onChange={handleNewSourceChange}
-                className="w-full px-3 py-2 rounded-lg border-2 border-gray-300 shadow-sm text-sm focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500"
+                className="w-full px-3 py-2 md:py-3 rounded-lg border-2 border-gray-300 shadow-sm text-sm focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500"
                 required
               />
             </div>
 
             {/* Format */}
             <div>
-              <label className="block text-xs font-semibold text-gray-700 mb-1">
+              <label className="block text-xs md:text-sm font-semibold text-gray-700 mb-1">
                 Data Format *
               </label>
               <input
@@ -422,7 +422,7 @@ const DataSourceConfig = ({ dataSources, setDataSources }) => {
                 placeholder="e.g., JSON, SQL, CSV, Parquet, XML"
                 value={newSource.format}
                 onChange={handleNewSourceChange}
-                className="w-full px-3 py-2 rounded-lg border-2 border-gray-300 shadow-sm text-sm focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500"
+                className="w-full px-3 py-2 md:py-3 rounded-lg border-2 border-gray-300 shadow-sm text-sm focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500"
                 required
               />
             </div>
@@ -430,7 +430,7 @@ const DataSourceConfig = ({ dataSources, setDataSources }) => {
             {/* Optional API Key */}
             {(newSource.authType === 'API Key' || newSource.authType === 'Token-Based') && (
               <div>
-                <label className="block text-xs font-semibold text-gray-700 mb-1">
+                <label className="block text-xs md:text-sm font-semibold text-gray-700 mb-1">
                   API Key / Token (Optional)
                 </label>
                 <input
@@ -439,7 +439,7 @@ const DataSourceConfig = ({ dataSources, setDataSources }) => {
                   placeholder="Enter your API key or token"
                   value={newSource.apiKey}
                   onChange={handleNewSourceChange}
-                  className="w-full px-3 py-2 rounded-lg border-2 border-gray-300 shadow-sm text-sm focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500"
+                  className="w-full px-3 py-2 md:py-3 rounded-lg border-2 border-gray-300 shadow-sm text-sm focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500"
                 />
               </div>
             )}
@@ -448,7 +448,7 @@ const DataSourceConfig = ({ dataSources, setDataSources }) => {
             {newSource.authType === 'Basic Login (User/Pass)' && (
               <>
                 <div>
-                  <label className="block text-xs font-semibold text-gray-700 mb-1">
+                  <label className="block text-xs md:text-sm font-semibold text-gray-700 mb-1">
                     Username (Optional)
                   </label>
                   <input
@@ -457,11 +457,11 @@ const DataSourceConfig = ({ dataSources, setDataSources }) => {
                     placeholder="Username"
                     value={newSource.username}
                     onChange={handleNewSourceChange}
-                    className="w-full px-3 py-2 rounded-lg border-2 border-gray-300 shadow-sm text-sm focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500"
+                    className="w-full px-3 py-2 md:py-3 rounded-lg border-2 border-gray-300 shadow-sm text-sm focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500"
                   />
                 </div>
                 <div>
-                  <label className="block text-xs font-semibold text-gray-700 mb-1">
+                  <label className="block text-xs md:text-sm font-semibold text-gray-700 mb-1">
                     Password (Optional)
                   </label>
                   <input
@@ -470,7 +470,7 @@ const DataSourceConfig = ({ dataSources, setDataSources }) => {
                     placeholder="Password"
                     value={newSource.password}
                     onChange={handleNewSourceChange}
-                    className="w-full px-3 py-2 rounded-lg border-2 border-gray-300 shadow-sm text-sm focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500"
+                    className="w-full px-3 py-2 md:py-3 rounded-lg border-2 border-gray-300 shadow-sm text-sm focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500"
                   />
                 </div>
               </>
@@ -480,7 +480,7 @@ const DataSourceConfig = ({ dataSources, setDataSources }) => {
           <button
             type="button"
             onClick={handleAddSource}
-            className="w-full flex justify-center items-center gap-2 px-4 py-3 text-sm font-bold text-white bg-gradient-to-r from-indigo-600 to-purple-600 rounded-lg hover:shadow-lg hover:scale-105 transition-all duration-300 transform disabled:opacity-50 disabled:cursor-not-allowed"
+            className="w-full flex justify-center items-center gap-2 px-4 py-3 text-xs md:text-sm font-bold text-white bg-gradient-to-r from-indigo-600 to-purple-600 rounded-lg hover:shadow-lg hover:scale-105 transition-all duration-300 transform disabled:opacity-50 disabled:cursor-not-allowed"
           >
             ➕ Add This Data Source
           </button>

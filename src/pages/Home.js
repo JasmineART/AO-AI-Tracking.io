@@ -58,7 +58,7 @@ const Home = () => {
         <div className="grid md:grid-cols-3 gap-8 mb-16">
           <div className="group bg-white p-8 rounded-2xl shadow-xl hover:shadow-2xl transition-all duration-300 hover:-translate-y-2 animate-fadeInUp" style={{animationDelay: '0.1s'}}>
             <div className="text-5xl mb-6 transform group-hover:scale-110 transition-transform duration-300">📊</div>
-            <h3 className="text-2xl font-bold mb-3 text-gray-900">Real-Time Analytics</h3>
+            <h3 className="text-lg md:text-2xl font-bold mb-3 text-gray-900">Real-Time Analytics</h3>
             <p className="text-gray-600 leading-relaxed">
               Monitor AI readiness scores, project status, and key performance indicators with 
               live dashboards and interactive visualizations.
@@ -68,7 +68,7 @@ const Home = () => {
           
           <div className="group bg-white p-8 rounded-2xl shadow-xl hover:shadow-2xl transition-all duration-300 hover:-translate-y-2 animate-fadeInUp" style={{animationDelay: '0.2s'}}>
             <div className="text-5xl mb-6 transform group-hover:scale-110 transition-transform duration-300">🔗</div>
-            <h3 className="text-2xl font-bold mb-3 text-gray-900">10+ Integrations</h3>
+            <h3 className="text-lg md:text-2xl font-bold mb-3 text-gray-900">10+ Integrations</h3>
             <p className="text-gray-600 leading-relaxed">
               Seamlessly connect to AWS, Azure, Google Sheets, Excel, Salesforce, and 6+ more 
               popular enterprise data platforms.
@@ -78,7 +78,7 @@ const Home = () => {
           
           <div className="group bg-white p-8 rounded-2xl shadow-xl hover:shadow-2xl transition-all duration-300 hover:-translate-y-2 animate-fadeInUp" style={{animationDelay: '0.3s'}}>
             <div className="text-5xl mb-6 transform group-hover:scale-110 transition-transform duration-300">🤖</div>
-            <h3 className="text-2xl font-bold mb-3 text-gray-900">AI-Powered Insights</h3>
+            <h3 className="text-lg md:text-2xl font-bold mb-3 text-gray-900">AI-Powered Insights</h3>
             <p className="text-gray-600 leading-relaxed">
               Auto-generated dashboards with intelligent recommendations and actionable 
               insights powered by advanced analytics.
@@ -89,7 +89,7 @@ const Home = () => {
 
         {/* Key Features Section */}
         <div className="bg-white/80 backdrop-blur-lg rounded-3xl shadow-2xl p-10 mb-16 border border-white/50 animate-fadeInUp">
-          <h2 className="text-4xl font-bold text-center mb-12">
+          <h2 className="text-3xl md:text-4xl font-bold text-center mb-12">
             <span className="gradient-text">Powerful Features</span>
           </h2>
           <div className="grid md:grid-cols-2 gap-8">
@@ -104,7 +104,7 @@ const Home = () => {
               <div key={idx} className="flex items-start gap-4 p-4 rounded-xl hover:bg-indigo-50 transition-all duration-300 group" style={{animationDelay: `${idx * 0.1}s`}}>
                 <span className="text-3xl transform group-hover:scale-125 transition-transform duration-300">{feature.icon}</span>
                 <div>
-                  <h4 className="font-bold text-lg mb-1 text-gray-900">{feature.title}</h4>
+                  <h4 className="font-bold text-base md:text-lg mb-1 text-gray-900">{feature.title}</h4>
                   <p className="text-gray-600">{feature.desc}</p>
                 </div>
               </div>
@@ -121,8 +121,8 @@ const Home = () => {
             { value: '∞', label: 'Scalability' }
           ].map((stat, idx) => (
             <div key={idx} className="bg-gradient-to-br from-indigo-600 to-purple-600 p-6 rounded-2xl text-center text-white shadow-xl hover:shadow-2xl transition-all duration-300 hover:-translate-y-2 animate-scaleIn" style={{animationDelay: `${idx * 0.1}s`}}>
-              <div className="text-4xl font-extrabold mb-2">{stat.value}</div>
-              <div className="text-sm opacity-90">{stat.label}</div>
+              <div className="text-3xl md:text-4xl font-extrabold mb-2">{stat.value}</div>
+              <div className="text-xs md:text-sm opacity-90">{stat.label}</div>
             </div>
           ))}
         </div>
@@ -131,7 +131,7 @@ const Home = () => {
         <div className="relative bg-gradient-to-r from-indigo-600 via-purple-600 to-pink-600 text-white rounded-3xl shadow-2xl p-12 text-center overflow-hidden animate-gradient">
           <div className="absolute inset-0 bg-black/10"></div>
           <div className="relative z-10">
-            <h2 className="text-4xl font-bold mb-4">Ready to Transform Your AI Journey?</h2>
+            <h2 className="text-3xl md:text-4xl font-bold mb-4">Ready to Transform Your AI Journey?</h2>
             <p className="text-xl mb-8 opacity-95">
               Join forward-thinking organizations successfully managing their AI transformation.
             </p>

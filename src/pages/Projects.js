@@ -9,6 +9,7 @@ import { saveProjectToRealtimeDb, getUserProjectsFromRealtimeDb, updateProjectIn
 import { getAvailableDataSources } from '../utils/dataIntegration';
 import DataSourceConfig from '../components/DataSourceConfig';
 import AdminThemeToggle from '../components/AdminThemeToggle';
+import Z_INDEX from '../utils/zIndexLayers';
 
 const Projects = () => {
   const navigate = useNavigate();
@@ -178,27 +179,27 @@ const Projects = () => {
   return (
     <div className="min-h-screen bg-gradient-to-br from-gray-50 via-indigo-50 to-purple-50 py-8">
       <div className="container mx-auto px-4">
-        <div className="flex justify-between items-center mb-8 animate-fadeInDown">
+        <div className="flex flex-col md:flex-row justify-between items-start md:items-center mb-8 animate-fadeInDown gap-4 md:gap-0">
           <div>
-            <h1 className="text-4xl font-extrabold mb-2">
+            <h1 className="text-3xl md:text-4xl font-extrabold mb-2">
               <span className="gradient-text">Projects & Systems</span>
             </h1>
-            <p className="text-gray-600">Manage your AI and automation initiatives</p>
+            <p className="text-sm md:text-base text-gray-600">Manage your AI and automation initiatives</p>
           </div>
-          <div className="flex gap-3 items-center">
+          <div className="flex gap-2 md:gap-3 items-center flex-wrap md:flex-nowrap w-full md:w-auto">
             <AdminThemeToggle />
             <button
               onClick={handleExportPDF}
-              className="bg-gradient-to-r from-green-500 to-emerald-500 text-white px-6 py-3 rounded-xl font-bold hover:shadow-2xl hover:scale-105 transition-all duration-300 transform flex items-center gap-2"
+              className="bg-gradient-to-r from-green-500 to-emerald-500 text-white px-3 md:px-6 py-2 md:py-3 rounded-xl font-bold text-xs md:text-base hover:shadow-2xl hover:scale-105 transition-all duration-300 transform flex items-center gap-1 md:gap-2 whitespace-nowrap"
               title="Export Projects to PDF"
             >
-              📄 Export PDF
+              📄 <span className="hidden md:inline">Export PDF</span>
             </button>
             <button
               onClick={() => setShowAddModal(true)}
-              className="bg-gradient-to-r from-indigo-600 to-purple-600 text-white px-6 py-3 rounded-xl font-bold hover:shadow-2xl hover:scale-105 transition-all duration-300 transform flex items-center gap-2"
+              className="bg-gradient-to-r from-indigo-600 to-purple-600 text-white px-3 md:px-6 py-2 md:py-3 rounded-xl font-bold text-xs md:text-base hover:shadow-2xl hover:scale-105 transition-all duration-300 transform flex items-center gap-1 md:gap-2 whitespace-nowrap"
             >
-              <span className="text-2xl">+</span> Add New Project
+              <span className="text-lg md:text-2xl">+</span> <span className="hidden md:inline">Add Project</span><span className="md:hidden">Add</span>
             </button>
           </div>
         </div>
@@ -355,21 +356,43 @@ const Projects = () => {
 
       {/* Add/Edit Modal */}
       {showAddModal && (
-        <div className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center p-4 z-50 animate-fadeInUp">
+        <div 
+          className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center p-4 animate-fadeInUp"
+          style={{ zIndex: Z_INDEX.MODAL_BACKDROP }}
+          role="dialog"
+          aria-modal="true"
+          aria-labelledby="project-modal-title"
+          onKeyDown={(e) => {
+            if (e.key === 'Escape') {
+              resetForm();
+            }
+          }}
+        >
           <div className="bg-white rounded-3xl shadow-2xl max-w-2xl w-full max-h-[90vh] overflow-y-auto border-2 border-gray-100 animate-scaleIn">
             <div className="p-8">
-              <h2 className="text-3xl font-bold mb-6">
-                <span className="gradient-text">
-                  {editingProject ? '✏️ Edit Project' : '✨ Add New Project'}
-                </span>
-              </h2>
+              <div className="flex justify-between items-start mb-6">
+                <h2 id="project-modal-title" className="text-3xl font-bold">
+                  <span className="gradient-text">
+                    {editingProject ? '✏️ Edit Project' : '✨ Add New Project'}
+                  </span>
+                </h2>
+                <button
+                  onClick={resetForm}
+                  aria-label="Close modal"
+                  className="text-2xl text-gray-500 hover:text-gray-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 rounded p-1"
+                  type="button"
+                >
+                  ×
+                </button>
+              </div>
 
               <form onSubmit={handleSubmit} className="space-y-5">
                 <div>
-                  <label className="block text-sm font-bold text-gray-700 mb-2">
+                  <label htmlFor="project-name" className="block text-sm font-bold text-gray-700 mb-2">
                     Project Name *
                   </label>
                   <input
+                    id="project-name"
                     type="text"
                     name="name"
                     value={formData.name}
@@ -382,10 +405,11 @@ const Projects = () => {
 
                 <div className="grid md:grid-cols-2 gap-4">
                   <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-2">
+                    <label htmlFor="project-type" className="block text-sm font-medium text-gray-700 mb-2">
                       Type *
                     </label>
                     <select
+                      id="project-type"
                       name="type"
                       value={formData.type}
                       onChange={handleInputChange}
@@ -399,10 +423,11 @@ const Projects = () => {
                   </div>
 
                   <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-2">
+                    <label htmlFor="project-status" className="block text-sm font-medium text-gray-700 mb-2">
                       Status *
                     </label>
                     <select
+                      id="project-status"
                       name="status"
                       value={formData.status}
                       onChange={handleInputChange}
@@ -424,10 +449,11 @@ const Projects = () => {
 
                 <div className="grid md:grid-cols-2 gap-4">
                   <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-2">
+                    <label htmlFor="project-owner" className="block text-sm font-medium text-gray-700 mb-2">
                       Owner *
                     </label>
                     <input
+                      id="project-owner"
                       type="text"
                       name="owner"
                       value={formData.owner}
@@ -439,10 +465,11 @@ const Projects = () => {
                   </div>
 
                   <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-2">
+                    <label htmlFor="project-department" className="block text-sm font-medium text-gray-700 mb-2">
                       Department *
                     </label>
                     <input
+                      id="project-department"
                       type="text"
                       name="department"
                       value={formData.department}
@@ -455,10 +482,11 @@ const Projects = () => {
                 </div>
 
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                  <label htmlFor="readiness-score" className="block text-sm font-medium text-gray-700 mb-2">
                     AI Readiness Score: {formData.readinessScore}
                   </label>
                   <input
+                    id="readiness-score"
                     type="range"
                     name="readinessScore"
                     value={formData.readinessScore}

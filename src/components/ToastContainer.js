@@ -1,5 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { useToast } from '../contexts/ToastContext';
+import Z_INDEX from '../utils/zIndexLayers';
 
 const Toast = ({ id, message, type, duration }) => {
   const { removeToast } = useToast();
@@ -85,7 +86,14 @@ const Toast = ({ id, message, type, duration }) => {
           e.stopPropagation();
           handleClose();
         }}
-        className="text-white hover:text-gray-200 transition-colors text-xl font-bold ml-2"
+        onKeyDown={(e) => {
+          if (e.key === 'Enter' || e.key === ' ') {
+            e.preventDefault();
+            handleClose();
+          }
+        }}
+        type="button"
+        className="text-white hover:text-gray-200 transition-colors text-xl font-bold ml-2 p-1 rounded focus:outline-none focus:ring-2 focus:ring-white"
         aria-label="Close notification"
       >
         ×
@@ -98,7 +106,10 @@ const ToastContainer = () => {
   const { toasts } = useToast();
 
   return (
-    <div className="fixed top-4 right-4 z-[9999] flex flex-col gap-3 pointer-events-none">
+    <div 
+      className="fixed top-4 right-4 flex flex-col gap-3 pointer-events-none"
+      style={{ zIndex: Z_INDEX.TOAST }}
+    >
       <div className="pointer-events-auto flex flex-col gap-3">
         {toasts.map((toast) => (
           <Toast key={toast.id} {...toast} />

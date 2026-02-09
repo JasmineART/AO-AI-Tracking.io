@@ -139,11 +139,13 @@ const DataGridView = ({ project }) => {
             {/* Data Source Selector */}
             {project.dataSources && project.dataSources.length > 1 && (
               <div className="flex items-center gap-2">
-                <label className="text-sm font-semibold text-gray-700">Data Source:</label>
+                <label htmlFor="data-source-select" className="text-sm font-semibold text-gray-700">Data Source:</label>
                 <select
+                  id="data-source-select"
                   value={selectedDataSource}
                   onChange={(e) => setSelectedDataSource(Number(e.target.value))}
                   className="px-3 py-2 border-2 border-indigo-300 rounded-lg text-sm font-semibold focus:ring-2 focus:ring-indigo-500 focus:border-transparent"
+                  aria-label="Select data source for filtering"
                 >
                   {project.dataSources.map((source, idx) => (
                     <option key={idx} value={idx}>
@@ -156,13 +158,15 @@ const DataGridView = ({ project }) => {
 
             {/* Search Filter */}
             <div className="flex items-center gap-2 flex-1 max-w-md">
-              <label className="text-sm font-semibold text-gray-700">🔍</label>
+              <label htmlFor="filter-search" className="text-sm font-semibold text-gray-700">🔍</label>
               <input
+                id="filter-search"
                 type="text"
                 placeholder="Filter data..."
                 value={filterText}
                 onChange={(e) => setFilterText(e.target.value)}
                 className="flex-1 px-3 py-2 border-2 border-indigo-300 rounded-lg text-sm focus:ring-2 focus:ring-indigo-500 focus:border-transparent"
+                aria-label="Filter data grid by text content"
               />
             </div>
           </div>
@@ -171,6 +175,8 @@ const DataGridView = ({ project }) => {
           <div className="flex items-center gap-2">
             <button
               onClick={handleAddRow}
+              type="button"
+              aria-label="Add new row to data grid"
               className="bg-gradient-to-r from-green-500 to-emerald-600 text-white px-4 py-2 rounded-lg font-semibold text-sm hover:shadow-lg transition-all flex items-center gap-2"
             >
               ➕ Add Row
@@ -178,6 +184,8 @@ const DataGridView = ({ project }) => {
             {data.length === 0 && (
               <button
                 onClick={handleLoadSampleData}
+                type="button"
+                aria-label="Load sample data into grid"
                 className="bg-gradient-to-r from-yellow-500 to-orange-600 text-white px-4 py-2 rounded-lg font-semibold text-sm hover:shadow-lg transition-all flex items-center gap-2"
                 title="Load sample data to see how it works"
               >
@@ -186,6 +194,8 @@ const DataGridView = ({ project }) => {
             )}
             <button
               onClick={handleExport}
+              type="button"
+              aria-label="Export data to CSV file"
               className="bg-gradient-to-r from-blue-500 to-indigo-600 text-white px-4 py-2 rounded-lg font-semibold text-sm hover:shadow-lg transition-all flex items-center gap-2"
               disabled={data.length === 0}
             >
@@ -193,6 +203,8 @@ const DataGridView = ({ project }) => {
             </button>
             <button
               onClick={loadData}
+              type="button"
+              aria-label="Refresh data grid"
               className="bg-gradient-to-r from-purple-500 to-pink-600 text-white px-4 py-2 rounded-lg font-semibold text-sm hover:shadow-lg transition-all flex items-center gap-2"
             >
               🔄 Refresh
@@ -218,28 +230,43 @@ const DataGridView = ({ project }) => {
 
       {/* Data Grid */}
       <div className="bg-white rounded-xl shadow-lg border border-gray-200 overflow-hidden">
-        <div className="overflow-x-auto">
-          <table className="w-full border-collapse">
+        <div className="overflow-x-auto md:overflow-x-visible">
+          <table className="w-full border-collapse text-xs md:text-sm">
             <thead>
               <tr className="bg-gradient-to-r from-indigo-600 to-purple-600 text-white">
-                <th className="px-4 py-3 text-left text-xs font-bold uppercase tracking-wider border-r border-indigo-500">
+                <th className="px-2 md:px-4 py-2 md:py-3 text-left text-xs font-bold uppercase tracking-wider border-r border-indigo-500">
                   #
                 </th>
                 {columns.map((col) => (
                   <th
                     key={col.key}
                     onClick={() => handleSort(col.key)}
-                    className="px-4 py-3 text-left text-xs font-bold uppercase tracking-wider border-r border-indigo-500 cursor-pointer hover:bg-indigo-700 transition-colors"
+                    onKeyDown={(e) => {
+                      if (e.key === 'Enter' || e.key === ' ') {
+                        e.preventDefault();
+                        handleSort(col.key);
+                      }
+                    }}
+                    role="columnheader"
+                    aria-sort={
+                      sortConfig.key === col.key 
+                        ? (sortConfig.direction === 'asc' ? 'ascending' : 'descending')
+                        : 'none'
+                    }
+                    tabIndex="0"
+                    className="px-2 md:px-4 py-2 md:py-3 text-left text-xs font-bold uppercase tracking-wider border-r border-indigo-500 cursor-pointer hover:bg-indigo-700 transition-colors focus:outline-none focus:ring-2 focus:ring-inset focus:ring-white"
                   >
                     <div className="flex items-center gap-2">
                       {col.label}
                       {sortConfig.key === col.key && (
-                        <span>{sortConfig.direction === 'asc' ? '↑' : '↓'}</span>
+                        <span aria-label={`Sorted ${sortConfig.direction === 'asc' ? 'ascending' : 'descending'}`}>
+                          {sortConfig.direction === 'asc' ? '↑' : '↓'}
+                        </span>
                       )}
                     </div>
                   </th>
                 ))}
-                <th className="px-4 py-3 text-center text-xs font-bold uppercase tracking-wider">
+                <th className="px-2 md:px-4 py-2 md:py-3 text-center text-xs font-bold uppercase tracking-wider">
                   Actions
                 </th>
               </tr>
@@ -253,13 +280,13 @@ const DataGridView = ({ project }) => {
                       rowIndex % 2 === 0 ? 'bg-gray-50' : 'bg-white'
                     } hover:bg-indigo-50 transition-colors`}
                   >
-                    <td className="px-4 py-3 text-sm font-semibold text-gray-700 border-r border-gray-200">
+                    <td className="px-2 md:px-4 py-2 md:py-3 text-xs md:text-sm font-semibold text-gray-700 border-r border-gray-200">
                       {rowIndex + 1}
                     </td>
                     {columns.map((col) => (
                       <td
                         key={col.key}
-                        className="px-4 py-3 text-sm border-r border-gray-200"
+                        className="px-2 md:px-4 py-2 md:py-3 text-xs md:text-sm border-r border-gray-200"
                         onDoubleClick={() => handleCellEdit(rowIndex, col.key)}
                       >
                         {editingCell?.rowIndex === rowIndex && editingCell?.columnKey === col.key ? (
@@ -277,13 +304,17 @@ const DataGridView = ({ project }) => {
                             />
                             <button
                               onClick={handleCellSave}
-                              className="text-green-600 hover:text-green-800 font-bold"
+                              type="button"
+                              aria-label="Save cell edit"
+                              className="text-green-600 hover:text-green-800 font-bold p-1 rounded focus:outline-none focus:ring-2 focus:ring-green-500"
                             >
                               ✓
                             </button>
                             <button
                               onClick={handleCellCancel}
-                              className="text-red-600 hover:text-red-800 font-bold"
+                              type="button"
+                              aria-label="Cancel cell edit"
+                              className="text-red-600 hover:text-red-800 font-bold p-1 rounded focus:outline-none focus:ring-2 focus:ring-red-500"
                             >
                               ✗
                             </button>
@@ -293,13 +324,15 @@ const DataGridView = ({ project }) => {
                         )}
                       </td>
                     ))}
-                    <td className="px-4 py-3 text-center border-gray-200">
+                    <td className="px-2 md:px-4 py-2 md:py-3 text-center border-gray-200">
                       <button
                         onClick={() => handleDeleteRow(rowIndex)}
-                        className="text-red-500 hover:text-red-700 font-bold text-lg"
-                        title="Delete row"
+                        aria-label={`Delete row ${rowIndex + 1}`}
+                        className="text-red-500 hover:text-red-700 font-bold text-lg p-2 rounded hover:bg-red-50 focus:outline-none focus:ring-2 focus:ring-red-500 focus:ring-offset-1"
+                        type="button"
+                        title="Delete this row"
                       >
-                        🗑️
+                        🗑️ <span className="sr-only">Delete</span>
                       </button>
                     </td>
                   </tr>
@@ -329,9 +362,9 @@ const DataGridView = ({ project }) => {
       </div>
 
       {/* Help Text */}
-      <div className="bg-blue-50 rounded-lg p-4 border border-blue-200">
-        <p className="text-sm text-blue-900">
-          <strong>💡 Tip:</strong> Double-click any cell to edit its value. Click column headers to sort. Use the search box to filter data.
+      <div className="bg-blue-50 rounded-lg p-3 md:p-4 border border-blue-200">
+        <p className="text-xs md:text-sm text-blue-900">
+          <strong>💡 Tip:</strong> Double-click any cell to edit. Click column headers to sort. Use the search box to filter data.
         </p>
       </div>
     </div>
