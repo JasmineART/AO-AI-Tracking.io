@@ -1,27 +1,15 @@
 /**
  * Navbar Component
- * Main navigation bar for the application
  * 
- * Features:
+ * Navigation bar with:
  * - Responsive design (desktop & mobile)
  * - Authentication-aware menu items
+ * - User dropdown menu (Profile)
  * - Dark/light theme toggle
- * - Mobile slide-out menu with backdrop
- * - Smooth animations and transitions
- */
-
-/**
- * Navbar Component
+ * - Mobile slide-out menu with organized sections
  * 
- * Main navigation bar with:
- * - Responsive design (desktop & mobile)
- * - Authentication-aware menu items
- * - Dark/light theme toggle
- * - Mobile slide-out menu with backdrop
- * 
- * Navigation Items:
- * - Unauthenticated: Home, Login
- * - Authenticated: Dashboard, Projects, Profile, Theme, Logout
+ * Desktop Navigation: Home, Projects, Dashboard | Profile Dropdown | Theme | Logout
+ * Mobile Navigation: Full sidebar with all pages organized by section
  */
 import React, { useState, useEffect } from 'react';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
@@ -29,7 +17,7 @@ import { useAuth } from '../contexts/AuthContext';
 import { useToast } from '../contexts/ToastContext';
 import { useTheme } from '../contexts/ThemeContext';
 import Z_INDEX from '../utils/zIndexLayers';
-import { AUTHENTICATED_NAV_ITEMS, UNAUTHENTICATED_NAV_ITEMS, getButtonText } from '../utils/navigationConfig';
+import { AUTHENTICATED_NAV_ITEMS, UNAUTHENTICATED_NAV_ITEMS } from '../utils/navigationConfig';
 
 const Navbar = () => {
   // ============ Contexts & Hooks ============
@@ -42,6 +30,8 @@ const Navbar = () => {
   // ============ Local State ============
   /** Controls mobile menu visibility */
   const [menuOpen, setMenuOpen] = useState(false);
+  /** Controls user dropdown menu on desktop */
+  const [userMenuOpen, setUserMenuOpen] = useState(false);
 
   // ============ Event Handlers ============
   /**
@@ -64,12 +54,11 @@ const Navbar = () => {
 
   // ============ Effects ============
   /**
-   * Close mobile menu when route changes
-   * Ensures menu auto-closes during navigation
+   * Close mobile menu and user dropdown when route changes
    */
-  // Close mobile menu when navigating (route change)
   useEffect(() => {
     setMenuOpen(false);
+    setUserMenuOpen(false);
   }, [location.pathname]);
 
   /**
@@ -105,6 +94,20 @@ const Navbar = () => {
     };
   }, [menuOpen]);
 
+  // Close user dropdown when clicking outside
+  useEffect(() => {
+    const handleClickOutside = (e) => {
+      if (userMenuOpen && !e.target.closest('[data-user-menu]')) {
+        setUserMenuOpen(false);
+      }
+    };
+    
+    if (userMenuOpen) {
+      document.addEventListener('click', handleClickOutside);
+      return () => document.removeEventListener('click', handleClickOutside);
+    }
+  }, [userMenuOpen]);
+
   /**
    * Check if a path matches current location
    * Used to highlight active navigation items
@@ -113,6 +116,26 @@ const Navbar = () => {
    */
   const isActive = (path) => {
     return location.pathname === path;
+  };
+
+  // Desktop nav link styling
+  const navLinkClass = (path) => {
+    const isActiveLink = isActive(path);
+    return `px-4 py-2 rounded-lg font-semibold transition-all duration-300 ${
+      isActiveLink
+        ? 'bg-gradient-to-r from-indigo-600 to-purple-600 text-white shadow-lg'
+        : 'text-gray-700 dark:text-gray-200 hover:bg-indigo-50 dark:hover:bg-gray-700 hover:text-indigo-600 dark:hover:text-indigo-400'
+    }`;
+  };
+
+  // Mobile nav link styling (for sidebar menu)
+  const mobileNavLinkClass = (path) => {
+    const isActiveLink = isActive(path);
+    return `block w-full text-left px-4 py-3 rounded-lg font-semibold transition-colors duration-200 ${
+      isActiveLink
+        ? 'bg-indigo-600 text-white'
+        : 'text-gray-700 dark:text-gray-200 hover:bg-gray-100 dark:hover:bg-gray-800'
+    }`;
   };
 
   // ============ Render ============
@@ -135,36 +158,60 @@ const Navbar = () => {
           <div className="hidden md:flex items-center gap-2">
             {currentUser ? (
               <>
-                <Link
-                  to="/dashboard"
-                  className={`px-4 py-2 rounded-lg font-semibold transition-all duration-300 ${
-                    isActive('/dashboard')
-                      ? 'bg-gradient-to-r from-indigo-600 to-purple-600 text-white shadow-lg'
-                      : 'text-gray-700 dark:text-gray-200 hover:bg-indigo-50 dark:hover:bg-gray-700 hover:text-indigo-600 dark:hover:text-indigo-400'
-                  }`}
-                >
-                  📊 Dashboard
-                </Link>
-                <Link
-                  to="/projects"
-                  className={`px-4 py-2 rounded-lg font-semibold transition-all duration-300 ${
-                    isActive('/projects')
-                      ? 'bg-gradient-to-r from-indigo-600 to-purple-600 text-white shadow-lg'
-                      : 'text-gray-700 dark:text-gray-200 hover:bg-indigo-50 dark:hover:bg-gray-700 hover:text-indigo-600 dark:hover:text-indigo-400'
-                  }`}
-                >
-                  🚀 Projects
-                </Link>
-                <Link
-                  to="/profile"
-                  className={`px-4 py-2 rounded-lg font-semibold transition-all duration-300 ${
-                    isActive('/profile')
-                      ? 'bg-gradient-to-r from-indigo-600 to-purple-600 text-white shadow-lg'
-                      : 'text-gray-700 dark:text-gray-200 hover:bg-indigo-50 dark:hover:bg-gray-700 hover:text-indigo-600 dark:hover:text-indigo-400'
-                  }`}
-                >
-                  👤 Profile
-                </Link>
+                {/* Main Navigation Items (Home, Projects, Dashboard) */}
+                <div className="flex items-center gap-1">
+                  {AUTHENTICATED_NAV_ITEMS.filter(item => item.section === 'main').map((item) => (
+                    <Link
+                      key={item.path}
+                      to={item.path}
+                      className={navLinkClass(item.path)}
+                      title={item.description}
+                    >
+                      {item.icon} {item.label}
+                    </Link>
+                  ))}
+                </div>
+                
+                {/* User Dropdown Menu */}
+                <div className="relative" data-user-menu>
+                  <button
+                    onClick={() => setUserMenuOpen(!userMenuOpen)}
+                    className="ml-2 px-3 py-2 rounded-lg font-semibold text-gray-700 dark:text-gray-200 hover:bg-indigo-50 dark:hover:bg-gray-700 transition-all duration-300 flex items-center gap-2"
+                    title="User menu"
+                    data-user-menu
+                  >
+                    👤
+                    <span className="text-sm">Account</span>
+                  </button>
+                  
+                  {/* Dropdown Content */}
+                  {userMenuOpen && (
+                    <div className="absolute right-0 mt-0 w-48 bg-white dark:bg-gray-800 rounded-lg shadow-xl border border-gray-200 dark:border-gray-700 z-50">
+                      <Link
+                        to="/profile"
+                        onClick={() => setUserMenuOpen(false)}
+                        className={`block w-full text-left px-4 py-3 font-semibold transition-colors ${
+                          isActive('/profile')
+                            ? 'bg-indigo-100 dark:bg-indigo-900 text-indigo-700 dark:text-indigo-300'
+                            : 'text-gray-700 dark:text-gray-200 hover:bg-gray-100 dark:hover:bg-gray-700'
+                        }`}
+                      >
+                        👤 Profile
+                      </Link>
+                      <Link
+                        to="/system-status"
+                        onClick={() => setUserMenuOpen(false)}
+                        className={`block w-full text-left px-4 py-3 font-semibold border-t border-gray-200 dark:border-gray-700 transition-colors ${
+                          isActive('/system-status')
+                            ? 'bg-indigo-100 dark:bg-indigo-900 text-indigo-700 dark:text-indigo-300'
+                            : 'text-gray-700 dark:text-gray-200 hover:bg-gray-100 dark:hover:bg-gray-700'
+                        }`}
+                      >
+                        ⚙️ System Status
+                      </Link>
+                    </div>
+                  )}
+                </div>
                 
                 {/* Theme Toggle */}
                 <button
@@ -178,6 +225,7 @@ const Navbar = () => {
                   </span>
                 </button>
                 
+                {/* Logout Button */}
                 <button
                   onClick={handleLogout}
                   className="ml-2 bg-gradient-to-r from-red-500 to-pink-500 text-white px-6 py-2 rounded-lg font-semibold hover:shadow-xl hover:scale-105 transition-all duration-300 transform"
@@ -187,16 +235,17 @@ const Navbar = () => {
               </>
             ) : (
               <>
-                <Link
-                  to="/"
-                  className={`px-4 py-2 rounded-lg font-semibold transition-all duration-300 ${
-                    isActive('/')
-                      ? 'bg-gradient-to-r from-indigo-600 to-purple-600 text-white shadow-lg'
-                      : 'text-gray-700 hover:bg-indigo-50 hover:text-indigo-600'
-                  }`}
-                >
-                  🏠 Home
-                </Link>
+                {/* Unauthenticated Navigation */}
+                {UNAUTHENTICATED_NAV_ITEMS.map((item) => (
+                  <Link
+                    key={item.path}
+                    to={item.path}
+                    className={navLinkClass(item.path)}
+                    title={item.description}
+                  >
+                    {item.icon} {item.label}
+                  </Link>
+                ))}
                 <Link
                   to="/login"
                   className="bg-gradient-to-r from-indigo-600 to-purple-600 text-white px-6 py-2 rounded-lg font-semibold hover:shadow-xl hover:scale-105 transition-all duration-300 transform"
@@ -208,7 +257,7 @@ const Navbar = () => {
           </div>
 
           {/* Mobile Menu Button */}
-          <div className="md:hidden">
+          <div className="md:hidden flex items-center gap-2">
             {currentUser ? (
               <button
                 onClick={() => setMenuOpen(open => !open)}
@@ -229,12 +278,20 @@ const Navbar = () => {
                 )}
               </button>
             ) : (
-              <Link
-                to="/login"
-                className="text-indigo-600 dark:text-indigo-400 font-medium"
-              >
-                Login
-              </Link>
+              <>
+                <Link
+                  to="/"
+                  className={navLinkClass('/')}
+                >
+                  🏠 Home
+                </Link>
+                <Link
+                  to="/login"
+                  className="bg-gradient-to-r from-indigo-600 to-purple-600 text-white px-4 py-2 rounded-lg text-sm font-semibold hover:shadow-lg transition-all duration-300"
+                >
+                  Login
+                </Link>
+              </>
             )}
           </div>
         </div>
@@ -277,42 +334,56 @@ const Navbar = () => {
             {/* Scrollable Menu Items */}
             <nav className="flex-1 overflow-y-auto">
               <div className="space-y-1 p-3">
-                <Link
-                  to="/dashboard"
-                  className={`block w-full text-left px-4 py-3 rounded-lg font-semibold transition-colors duration-200 ${
-                    isActive('/dashboard')
-                      ? 'bg-indigo-600 text-white'
-                      : 'text-gray-700 dark:text-gray-200 hover:bg-gray-100 dark:hover:bg-gray-800'
-                  }`}
-                  onClick={() => setMenuOpen(false)}
-                  role="menuitem"
-                >
-                  📊 Dashboard
-                </Link>
-                <Link
-                  to="/projects"
-                  className={`block w-full text-left px-4 py-3 rounded-lg font-semibold transition-colors duration-200 ${
-                    isActive('/projects')
-                      ? 'bg-indigo-600 text-white'
-                      : 'text-gray-700 dark:text-gray-200 hover:bg-gray-100 dark:hover:bg-gray-800'
-                  }`}
-                  onClick={() => setMenuOpen(false)}
-                  role="menuitem"
-                >
-                  🚀 Projects
-                </Link>
-                <Link
-                  to="/profile"
-                  className={`block w-full text-left px-4 py-3 rounded-lg font-semibold transition-colors duration-200 ${
-                    isActive('/profile')
-                      ? 'bg-indigo-600 text-white'
-                      : 'text-gray-700 dark:text-gray-200 hover:bg-gray-100 dark:hover:bg-gray-800'
-                  }`}
-                  onClick={() => setMenuOpen(false)}
-                  role="menuitem"
-                >
-                  👤 Profile
-                </Link>
+                {/* Main Section */}
+                <div>
+                  <h3 className="px-4 py-2 text-xs font-bold text-gray-500 dark:text-gray-400 uppercase tracking-wider">Main</h3>
+                  {AUTHENTICATED_NAV_ITEMS.filter(item => item.section === 'main').map((item) => (
+                    <Link
+                      key={item.path}
+                      to={item.path}
+                      className={mobileNavLinkClass(item.path)}
+                      onClick={() => setMenuOpen(false)}
+                      role="menuitem"
+                      title={item.description}
+                    >
+                      {item.icon} {item.label}
+                    </Link>
+                  ))}
+                </div>
+
+                {/* User Section */}
+                <div>
+                  <h3 className="px-4 py-2 text-xs font-bold text-gray-500 dark:text-gray-400 uppercase tracking-wider mt-2">Account</h3>
+                  {AUTHENTICATED_NAV_ITEMS.filter(item => item.section === 'user').map((item) => (
+                    <Link
+                      key={item.path}
+                      to={item.path}
+                      className={mobileNavLinkClass(item.path)}
+                      onClick={() => setMenuOpen(false)}
+                      role="menuitem"
+                      title={item.description}
+                    >
+                      {item.icon} {item.label}
+                    </Link>
+                  ))}
+                </div>
+
+                {/* Admin Section */}
+                <div>
+                  <h3 className="px-4 py-2 text-xs font-bold text-gray-500 dark:text-gray-400 uppercase tracking-wider mt-2">System</h3>
+                  {AUTHENTICATED_NAV_ITEMS.filter(item => item.section === 'admin').map((item) => (
+                    <Link
+                      key={item.path}
+                      to={item.path}
+                      className={mobileNavLinkClass(item.path)}
+                      onClick={() => setMenuOpen(false)}
+                      role="menuitem"
+                      title={item.description}
+                    >
+                      {item.icon} {item.label}
+                    </Link>
+                  ))}
+                </div>
 
                 {/* Divider */}
                 <div className="my-2 h-px bg-gray-200 dark:bg-gray-700" />

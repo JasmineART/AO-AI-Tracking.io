@@ -124,21 +124,26 @@ const Dashboard = () => {
   const [lastUpdate, setLastUpdate] = useState(new Date());
 
   const handleExportPDF = () => {
-    if (!aggregateMetrics || !departmentMetrics) {
+    if (!dashboardData) {
       showError('No data available to export');
       return;
     }
+    
+    const { aggregateMetrics, departmentMetrics } = dashboardData;
+    
+    // Convert departmentMetrics object to array
+    const departmentsArray = Object.entries(departmentMetrics).map(([name, data]) => ({
+      name,
+      projects: data.count,
+      avgReadiness: data.avgReadiness
+    }));
     
     const exportData = {
       overallReadiness: aggregateMetrics.overallReadiness,
       totalProjects: aggregateMetrics.totalProjects,
       activeProjects: aggregateMetrics.activeProjects,
       completedProjects: aggregateMetrics.completedProjects,
-      departments: departmentMetrics.map(dept => ({
-        name: dept.name,
-        projects: dept.count,
-        avgReadiness: dept.avgReadiness
-      })),
+      departments: departmentsArray,
       insights: aiInsights
     };
     
