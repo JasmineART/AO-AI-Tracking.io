@@ -14,6 +14,8 @@ import Projects from './pages/Projects';
 import ProjectDetail from './pages/ProjectDetail';
 import Profile from './pages/Profile';
 import SystemStatus from './pages/SystemStatus';
+import EmployeeLogin from './pages/EmployeeLogin';
+import CompanyPortal from './pages/CompanyPortal';
 import errorMonitor from './utils/errorMonitoring';
 import healthCheck from './utils/healthCheck';
 
@@ -63,6 +65,15 @@ function App() {
                 <Routes>
                   <Route path="/" element={<Home />} />
                   <Route path="/login" element={<Login />} />
+                  <Route path="/employee-login" element={<EmployeeLogin />} />
+                  <Route
+                    path="/company-portal"
+                    element={
+                      <ProtectedRoute>
+                        <CompanyPortal />
+                      </ProtectedRoute>
+                    }
+                  />
                   <Route
                     path="/dashboard"
                     element={

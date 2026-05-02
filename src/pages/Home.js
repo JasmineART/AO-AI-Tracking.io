@@ -43,14 +43,28 @@ const Home = () => {
               >
                 🎮 Try Live Demo
               </Link>
+              <Link
+                to="/employee-login"
+                className="bg-gradient-to-r from-slate-700 to-blue-800 text-white px-10 py-4 rounded-xl font-bold text-lg hover:shadow-2xl hover:scale-105 transition-all duration-300 transform hover:-translate-y-1 border-2 border-blue-500/30"
+              >
+                🏢 Employee Portal
+              </Link>
             </div>
           ) : (
-            <Link
-              to="/dashboard"
-              className="inline-block bg-gradient-to-r from-indigo-600 to-purple-600 text-white px-10 py-4 rounded-xl font-bold text-lg hover:shadow-2xl hover:scale-105 transition-all duration-300 transform hover:-translate-y-1"
-            >
-              Open Dashboard →
-            </Link>
+            <div className="flex gap-4 justify-center flex-wrap animate-fadeInUp">
+              <Link
+                to="/dashboard"
+                className="inline-block bg-gradient-to-r from-indigo-600 to-purple-600 text-white px-10 py-4 rounded-xl font-bold text-lg hover:shadow-2xl hover:scale-105 transition-all duration-300 transform hover:-translate-y-1"
+              >
+                Open Dashboard →
+              </Link>
+              <Link
+                to="/company-portal"
+                className="inline-block bg-gradient-to-r from-slate-700 to-blue-800 text-white px-10 py-4 rounded-xl font-bold text-lg hover:shadow-2xl hover:scale-105 transition-all duration-300 transform hover:-translate-y-1 border-2 border-blue-500/30"
+              >
+                🏢 Company Portal
+              </Link>
+            </div>
           )}
         </div>
 
@@ -125,6 +139,59 @@ const Home = () => {
               <div className="text-xs md:text-sm opacity-90">{stat.label}</div>
             </div>
           ))}
+        </div>
+
+        {/* Employee / Company Portal Access Section */}
+        <div className="bg-gradient-to-br from-slate-800 via-blue-900 to-indigo-900 rounded-3xl shadow-2xl p-10 mb-16 text-white relative overflow-hidden animate-fadeInUp">
+          <div className="absolute -top-10 -right-10 w-40 h-40 bg-blue-400/10 rounded-full blur-2xl"></div>
+          <div className="absolute -bottom-10 -left-10 w-40 h-40 bg-indigo-400/10 rounded-full blur-2xl"></div>
+          <div className="relative z-10">
+            <div className="flex items-center gap-3 mb-4">
+              <span className="text-4xl">🏢</span>
+              <h2 className="text-3xl md:text-4xl font-bold">Employee & Customer Service Portal</h2>
+            </div>
+            <p className="text-blue-200 text-lg mb-8 max-w-3xl">
+              Internal team members can access the Company Portal for full client profile management, 
+              web and app visitor analytics, and real-time performance monitoring.
+            </p>
+            <div className="grid md:grid-cols-3 gap-6 mb-8">
+              <div className="bg-white/10 backdrop-blur rounded-xl p-5 border border-white/10">
+                <span className="text-2xl block mb-2">👥</span>
+                <h4 className="font-bold text-lg mb-1">Client Profiles</h4>
+                <p className="text-blue-200 text-sm">View and manage all client accounts, contact details, plans, and satisfaction scores.</p>
+              </div>
+              <div className="bg-white/10 backdrop-blur rounded-xl p-5 border border-white/10">
+                <span className="text-2xl block mb-2">🌐</span>
+                <h4 className="font-bold text-lg mb-1">Visitor Analytics</h4>
+                <p className="text-blue-200 text-sm">Full breakdown of web and app visitors, bounce rates, session times, and conversion data.</p>
+              </div>
+              <div className="bg-white/10 backdrop-blur rounded-xl p-5 border border-white/10">
+                <span className="text-2xl block mb-2">⚡</span>
+                <h4 className="font-bold text-lg mb-1">Performance Metrics</h4>
+                <p className="text-blue-200 text-sm">Real-time uptime, response times, Lighthouse scores, and live activity monitoring.</p>
+              </div>
+            </div>
+            <div className="flex flex-wrap gap-4">
+              {!currentUser ? (
+                <Link
+                  to="/employee-login"
+                  className="bg-white text-blue-900 px-8 py-3 rounded-xl font-bold text-lg hover:bg-blue-50 hover:shadow-2xl hover:scale-105 transition-all duration-300 transform"
+                >
+                  Sign In to Employee Portal →
+                </Link>
+              ) : (
+                <Link
+                  to="/company-portal"
+                  className="bg-white text-blue-900 px-8 py-3 rounded-xl font-bold text-lg hover:bg-blue-50 hover:shadow-2xl hover:scale-105 transition-all duration-300 transform"
+                >
+                  Open Company Portal →
+                </Link>
+              )}
+              <span className="inline-flex items-center text-blue-300 text-sm">
+                🔒 Requires employee credentials or SSO
+              </span>
+            </div>
+          </div>
         </div>
 
         {/* CTA Section */}

@@ -3,7 +3,10 @@ const HtmlWebpackPlugin = require('html-webpack-plugin');
 const webpack = require('webpack');
 
 const isProduction = process.env.NODE_ENV === 'production';
-const publicPath = isProduction ? '/AO-AI-Tracking.io/' : '/';
+const publicPath = isProduction
+  ? (process.env.PUBLIC_PATH || '/')
+  : '/';
+const customDomain = process.env.CUSTOM_DOMAIN || 'theaoai.com';
 
 // Build a connect-src string that is strict in production but allows
 // websocket schemes in development (codespaces / cloud-hosted dev servers
@@ -95,6 +98,10 @@ module.exports = {
           if (fs.existsSync(html404Source)) {
             fs.copyFileSync(html404Source, html404Dest);
           }
+
+          // Write CNAME for custom domain routing on GitHub Pages
+          const cnamePath = path.resolve(__dirname, 'dist', 'CNAME');
+          fs.writeFileSync(cnamePath, `${customDomain}\n`);
         });
       }
     }

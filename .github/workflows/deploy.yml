@@ -36,6 +36,8 @@ jobs:
         run: npm run build
         env:
           NODE_ENV: production
+          PUBLIC_PATH: /
+          CUSTOM_DOMAIN: theaoai.com
       
       - name: Upload artifact
         uses: actions/upload-pages-artifact@v3

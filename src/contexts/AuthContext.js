@@ -183,6 +183,56 @@ export const AuthProvider = ({ children }) => {
     return Promise.resolve(demoUser);
   };
 
+  // Employee demo login function
+  const employeeDemoLogin = (role = 'customer_service') => {
+    const roleProfiles = {
+      customer_service: {
+        uid: 'emp-cs-001',
+        email: 'cs.agent@oaitracker.com',
+        displayName: 'Jordan Rivera',
+        photoURL: null,
+        isDemo: true,
+        employeeRole: 'customer_service',
+        department: 'Customer Service',
+        employeeId: 'EMP-CS-1042'
+      },
+      account_manager: {
+        uid: 'emp-am-001',
+        email: 'am.lead@oaitracker.com',
+        displayName: 'Taylor Morgan',
+        photoURL: null,
+        isDemo: true,
+        employeeRole: 'account_manager',
+        department: 'Account Management',
+        employeeId: 'EMP-AM-2085'
+      },
+      team_lead: {
+        uid: 'emp-tl-001',
+        email: 'team.lead@oaitracker.com',
+        displayName: 'Alex Chen',
+        photoURL: null,
+        isDemo: true,
+        employeeRole: 'team_lead',
+        department: 'Operations',
+        employeeId: 'EMP-TL-3011'
+      },
+      admin: {
+        uid: 'emp-admin-001',
+        email: 'admin@oaitracker.com',
+        displayName: 'Sam Patel',
+        photoURL: null,
+        isDemo: true,
+        employeeRole: 'admin',
+        department: 'Administration',
+        employeeId: 'EMP-AD-0001'
+      }
+    };
+    const demoUser = roleProfiles[role] || roleProfiles.customer_service;
+    setCurrentUser(demoUser);
+    localStorage.setItem('demoUser', JSON.stringify(demoUser));
+    return Promise.resolve(demoUser);
+  };
+
   useEffect(() => {
     // Check for demo user in localStorage
     const storedDemoUser = localStorage.getItem('demoUser');
@@ -250,6 +300,7 @@ export const AuthProvider = ({ children }) => {
     signInWithEmail,
     signUpWithEmail,
     demoLogin,
+    employeeDemoLogin,
     logout
   };
 

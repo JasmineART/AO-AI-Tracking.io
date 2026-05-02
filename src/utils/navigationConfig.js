@@ -7,6 +7,8 @@
 export const NAV_ROUTES = {
   HOME: '/',
   LOGIN: '/login',
+  EMPLOYEE_LOGIN: '/employee-login',
+  COMPANY_PORTAL: '/company-portal',
   DASHBOARD: '/dashboard',
   PROJECTS: '/projects',
   PROJECT_DETAIL: '/project/:projectId',
@@ -42,6 +44,13 @@ export const AUTHENTICATED_NAV_ITEMS = [
     section: 'main'
   },
   {
+    path: NAV_ROUTES.COMPANY_PORTAL,
+    label: 'Company Portal',
+    icon: '🏢',
+    description: 'Employee portal with client profiles and analytics',
+    section: 'main'
+  },
+  {
     path: NAV_ROUTES.PROFILE,
     label: 'Profile',
     icon: '👤',
@@ -63,6 +72,13 @@ export const UNAUTHENTICATED_NAV_ITEMS = [
     label: 'Home',
     icon: '🏠',
     description: 'Return to homepage',
+    section: 'main'
+  },
+  {
+    path: NAV_ROUTES.EMPLOYEE_LOGIN,
+    label: 'Employee Portal',
+    icon: '🏢',
+    description: 'Employee and customer service portal sign-in',
     section: 'main'
   }
 ];

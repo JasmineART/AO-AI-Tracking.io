@@ -3,25 +3,32 @@ import { getProjectRoadmapData } from '../utils/projectDataGenerator';
 
 const ProjectDashboard = ({ project }) => {
   // Check if project has existing roadmap data, otherwise use defaults
-  const roadmapData = project.roadmapData || {
+  const [roadmapData, setRoadmapData] = useState(project.roadmapData || {
     stats: {
       totalTasks: 0,
       completedTasks: 0,
       inProgressTasks: 0,
       progress: 0
     },
-    phases: []
-  };
+    phases: [],
+    team: [],
+    risks: [],
+    budget: {
+      total: 0,
+      spent: 0,
+      remaining: 0
+    }
+  });
   
   const [selectedPhase, setSelectedPhase] = useState(null);
   const [showAddMilestone, setShowAddMilestone] = useState(false);
-  const [showLoadSample, setShowLoadSample] = useState(roadmapData.phases.length === 0);
+  const [showLoadSample, setShowLoadSample] = useState(!project.roadmapData);
 
   const handleLoadSampleRoadmap = () => {
     // Load sample roadmap data from generator
     const sampleData = getProjectRoadmapData(project);
-    project.roadmapData = sampleData;
-    window.location.reload(); // Simple reload to show sample data
+    setRoadmapData(sampleData);
+    setShowLoadSample(false);
   };
 
   const getPhaseColor = (status) => {
