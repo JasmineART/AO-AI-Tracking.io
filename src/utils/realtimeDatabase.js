@@ -2,6 +2,12 @@ import { ref, set, get, update, remove, push, onValue, off } from 'firebase/data
 import { realtimeDb } from '../firebase';
 import validators from './validators';
 import errorMonitor from './errorMonitoring';
+import {
+  deleteCompanyProjectFromRealtimeDb,
+  getCompanyIdForUserFromRealtimeDb,
+  syncCompanyProjectToRealtimeDb,
+  syncAccountInCompanyTables
+} from './companyAccounts';
 
 /**
  * Save user data to Realtime Database
@@ -36,8 +42,16 @@ export const saveUserToRealtimeDb = async (user) => {
         console.log('✅ New user created in Realtime Database:', user.email);
       }
     } else {
-      // Existing user - update last login
-      await update(userRef, { lastLogin: userData.lastLogin });
+      // Existing user - update last login, display name, and photo in case they changed
+      const existingData = snapshot.val();
+      const profileUpdates = { lastLogin: userData.lastLogin };
+      if (userData.displayName && userData.displayName !== existingData.displayName) {
+        profileUpdates.displayName = userData.displayName;
+      }
+      if (userData.photoURL !== existingData.photoURL) {
+        profileUpdates.photoURL = userData.photoURL;
+      }
+      await update(userRef, profileUpdates);
       if (process.env.NODE_ENV === 'development') {
         console.log('✅ User login updated in Realtime Database:', user.email);
       }
@@ -79,6 +93,16 @@ export const updateUserInRealtimeDb = async (userId, updates) => {
   try {
     const userRef = ref(realtimeDb, `users/${userId}`);
     await update(userRef, updates);
+
+    // If the display name changed, propagate it to the company account tables
+    if (updates.displayName) {
+      try {
+        await syncAccountInCompanyTables(userId, { name: updates.displayName });
+      } catch (syncError) {
+        console.error('❌ Failed to propagate displayName to company tables:', syncError);
+      }
+    }
+
     if (process.env.NODE_ENV === 'development') {
       console.log('✅ User profile updated in Realtime Database');
     }
@@ -123,6 +147,12 @@ export const saveProjectToRealtimeDb = async (userId, project) => {
       if (process.env.NODE_ENV === 'development') {
         console.log('💾 Saving project to Firebase:', projectData);
       }    await set(newProjectRef, projectData);
+
+      // Mirror into company-level project table when the user is associated to a company
+      const companyId = await getCompanyIdForUserFromRealtimeDb(userId);
+      if (companyId) {
+        await syncCompanyProjectToRealtimeDb(companyId, projectData);
+      }
     
       if (process.env.NODE_ENV === 'development') {
         console.log('✅ Project saved to Realtime Database');
@@ -194,6 +224,12 @@ export const updateProjectInRealtimeDb = async (userId, projectId, updates) => {
 
     const projectRef = ref(realtimeDb, `users/${userId}/projects/${projectId}`);
     await update(projectRef, updatedProject);
+
+    const companyId = await getCompanyIdForUserFromRealtimeDb(userId);
+    if (companyId) {
+      await syncCompanyProjectToRealtimeDb(companyId, updatedProject);
+    }
+
     if (process.env.NODE_ENV === 'development') {
       console.log('✅ Project updated in Realtime Database');
     }
@@ -209,8 +245,14 @@ export const updateProjectInRealtimeDb = async (userId, projectId, updates) => {
  */
 export const deleteProjectFromRealtimeDb = async (userId, projectId) => {
   try {
+    const companyId = await getCompanyIdForUserFromRealtimeDb(userId);
     const projectRef = ref(realtimeDb, `users/${userId}/projects/${projectId}`);
     await remove(projectRef);
+
+    if (companyId) {
+      await deleteCompanyProjectFromRealtimeDb(companyId, projectId);
+    }
+
     if (process.env.NODE_ENV === 'development') {
       console.log('✅ Project deleted from Realtime Database');
     }

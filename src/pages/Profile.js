@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../contexts/AuthContext';
 import { useToast } from '../contexts/ToastContext';
 import { getUserFromRealtimeDb, updateUserInRealtimeDb, listenToUserData } from '../utils/realtimeDatabase';
+import { updateUserProfile } from '../utils/userDatabase';
 
 const Profile = () => {
   const { currentUser, logout } = useAuth();
@@ -45,7 +46,14 @@ const Profile = () => {
   const handleUpdateProfile = async (e) => {
     e.preventDefault();
     try {
+      // Update RealtimeDB (source of truth for user data + triggers account_table sync)
       await updateUserInRealtimeDb(currentUser.uid, formData);
+      // Mirror to Firestore users collection so analytics/queries stay in sync
+      try {
+        await updateUserProfile(currentUser.uid, formData);
+      } catch (_firestoreErr) {
+        // Firestore doc may not exist yet; non-fatal, RealtimeDB is the primary store
+      }
       const updatedData = await getUserFromRealtimeDb(currentUser.uid);
       setUserData(updatedData);
       setEditMode(false);
