@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { useAuth } from '../contexts/AuthContext';
 import { useToast } from '../contexts/ToastContext';
@@ -22,7 +22,8 @@ const Login = () => {
   const { success, error: showError, warning } = useToast();
   const navigate = useNavigate();
   const location = useLocation();
-  const loginRateLimiter = createLoginRateLimiter();
+  const loginRateLimiterRef = useRef(createLoginRateLimiter());
+  const loginRateLimiter = loginRateLimiterRef.current;
 
   useEffect(() => {
     // Check if demo mode is requested

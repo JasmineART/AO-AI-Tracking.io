@@ -1,5 +1,5 @@
-import React, { useState } from 'react';
-import { useNavigate, Link } from 'react-router-dom';
+import React, { useState, useRef } from 'react';
+import { useNavigate, Link, Navigate } from 'react-router-dom';
 import { useAuth } from '../contexts/AuthContext';
 import { useToast } from '../contexts/ToastContext';
 import { createLoginRateLimiter } from '../utils/security';
@@ -50,12 +50,12 @@ const EmployeeLogin = () => {
   const { signInWithGoogle, signInWithEmail, currentUser, demoLogin, employeeDemoLogin } = useAuth();
   const { success, error: showError } = useToast();
   const navigate = useNavigate();
-  const rateLimiter = createLoginRateLimiter();
+  const rateLimiterRef = useRef(createLoginRateLimiter());
+  const rateLimiter = rateLimiterRef.current;
 
   // Redirect if already logged in
   if (currentUser) {
-    navigate('/company-portal');
-    return null;
+    return <Navigate to="/company-portal" replace />;
   }
 
   // Auto-fill credentials when role changes

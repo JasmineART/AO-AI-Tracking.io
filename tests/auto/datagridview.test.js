@@ -15,8 +15,8 @@ const renderWithProviders = (ui) => render(<ToastProvider>{ui}</ToastProvider>);
 test('renders DataGridView and adds/deletes row', () => {
   renderWithProviders(<DataGridView project={project} />);
 
-  // Add a row
-  const addBtn = screen.getByText(/Add Row/i);
+  // Add a row - use getByRole to avoid matching the hint paragraph that also contains "Add Row"
+  const addBtn = screen.getByRole('button', { name: /Add new row/i });
   fireEvent.click(addBtn);
 
   // There should be at least one row now (Total Rows reflects)
@@ -33,6 +33,10 @@ test('renders DataGridView and adds/deletes row', () => {
 
 test('export csv triggers download flow', () => {
   renderWithProviders(<DataGridView project={project} />);
+
+  // Add a row first so the Export CSV button is enabled (disabled when data.length === 0)
+  const addBtn = screen.getByRole('button', { name: /Add new row/i });
+  fireEvent.click(addBtn);
 
   const exportBtn = screen.getByText(/Export CSV/i);
   fireEvent.click(exportBtn);

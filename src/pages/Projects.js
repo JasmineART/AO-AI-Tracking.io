@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../contexts/AuthContext';
 import { useToast } from '../contexts/ToastContext';
@@ -31,11 +31,7 @@ const Projects = () => {
     readinessScore: 50
   });
 
-  useEffect(() => {
-    loadProjects();
-  }, [currentUser]);
-
-  const loadProjects = async () => {
+  const loadProjects = useCallback(async () => {
     setLoading(true);
     try {
       if (currentUser?.isDemo) {
@@ -53,7 +49,11 @@ const Projects = () => {
       showError('Failed to load projects. Please refresh the page.');
     }
     setLoading(false);
-  };
+  }, [currentUser, showError]);
+
+  useEffect(() => {
+    loadProjects();
+  }, [loadProjects]);
 
   const handleInputChange = (e) => {
     const { name, value } = e.target;
