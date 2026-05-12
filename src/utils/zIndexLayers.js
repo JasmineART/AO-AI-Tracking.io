@@ -5,9 +5,9 @@
  * Hierarchy (lowest to highest):
  * - Base content: no z-index specified
  * - Modals & backdrops: 40-41
- * - Navbar: 50
- * - Mobile Menu Overlay: 99 (covers all content including modals)
- * - Toast notifications: 100 (highest, should float above everything)
+ * - Navbar: 100
+ * - Mobile Menu Overlay: 9999 (covers all content including modals)
+ * - Toast notifications: 9999+ (highest, should float above everything)
  */
 
 export const Z_INDEX = {
@@ -16,13 +16,13 @@ export const Z_INDEX = {
   MODAL: 41,
   
   // Navigation (sticky header)
-  NAVBAR: 50,
+  NAVBAR: 100,
   
   // Mobile menu overlay (must be above modals and content)
-  MOBILE_MENU: 99,
+  MOBILE_MENU: 9999,
   
   // Notifications (highest priority - always visible)
-  TOAST: 100,
+  TOAST: 10000,
 };
 
 export default Z_INDEX;

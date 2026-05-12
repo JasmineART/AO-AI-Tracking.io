@@ -140,7 +140,7 @@ const Navbar = () => {
 
   // ============ Render ============
   return (
-    <nav className="bg-white/80 dark:bg-gray-800/80 backdrop-blur-lg shadow-lg sticky top-0 border-b border-gray-200 dark:border-gray-700 transition-colors duration-300" style={{ zIndex: Z_INDEX.NAVBAR }}>
+    <nav className="bg-white/80 dark:bg-gray-800/80 backdrop-blur-lg shadow-lg sticky top-0 border-b border-gray-200 dark:border-gray-700 transition-colors duration-300 z-[100]">
       <div className="container mx-auto px-4">
         <div className="flex justify-between items-center h-16">
           {/* ========== Logo / Branding ========== */}
@@ -311,8 +311,7 @@ const Navbar = () => {
           {/* Menu Container */}
           <div
             id="mobile-menu"
-            className="fixed top-[64px] left-0 right-0 bottom-0 md:hidden bg-white dark:bg-gray-900 flex flex-col shadow-2xl"
-            style={{ zIndex: Z_INDEX.MOBILE_MENU }}
+            className="fixed top-[64px] left-0 right-0 bottom-0 md:hidden bg-white dark:bg-gray-900 flex flex-col shadow-2xl z-[9999]"
             role="navigation"
             aria-label="Mobile menu"
           >

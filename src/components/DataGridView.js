@@ -330,7 +330,7 @@ const DataGridView = ({ project }) => {
                         aria-label={`Delete row ${rowIndex + 1}`}
                         className="text-red-500 hover:text-red-700 font-bold text-lg p-2 rounded hover:bg-red-50 focus:outline-none focus:ring-2 focus:ring-red-500 focus:ring-offset-1"
                         type="button"
-                        title="Delete this row"
+                        title="Delete row"
                       >
                         🗑️ <span className="sr-only">Delete</span>
                       </button>
