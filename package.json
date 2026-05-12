@@ -2,7 +2,7 @@
   "name": "ao-ai-tracking.io",
   "version": "1.0.0",
   "private": true,
-  "homepage": "https://theaoai.com",
+  "homepage": "https://jasmineart.github.io/AO-AI-Tracking.io",
   "scripts": {
     "dev": "npm run serve-api & PORT=3001 npx webpack serve --mode development --port 3001 --no-open",
     "compile": "npm run build",
