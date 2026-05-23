@@ -63,13 +63,45 @@ jobs:
           REACT_APP_FIREBASE_APP_ID: ${{ secrets.REACT_APP_FIREBASE_APP_ID }}
           REACT_APP_FIREBASE_MEASUREMENT_ID: ${{ secrets.REACT_APP_FIREBASE_MEASUREMENT_ID }}
 
-      # Authenticate to Google Cloud via Workload Identity Federation — no long-lived keys
-      - name: Authenticate to Google Cloud
-        id: auth
+      # Detect which GCP auth method is configured.
+      # Option 1 – Keyless (recommended): set GCP_WORKLOAD_IDENTITY_PROVIDER + GCP_SERVICE_ACCOUNT
+      # Option 2 – SA key:                set GCP_SA_KEY with the service-account JSON contents
+      - name: Check GCP authentication prerequisites
+        id: check-auth
+        run: |
+          if [ -n "$WIF_PROVIDER" ]; then
+            echo "method=wif" >> "$GITHUB_OUTPUT"
+            echo "Using Workload Identity Federation"
+          elif [ -n "$SA_KEY" ]; then
+            echo "method=sa_key" >> "$GITHUB_OUTPUT"
+            echo "Using Service Account Key"
+          else
+            echo "method=none" >> "$GITHUB_OUTPUT"
+            echo "::error::No GCP credentials configured. Add one of these secret pairs to the repository:"
+            echo "::error::  Option 1 (keyless): GCP_WORKLOAD_IDENTITY_PROVIDER + GCP_SERVICE_ACCOUNT"
+            echo "::error::  Option 2 (SA key):  GCP_SA_KEY (full service-account JSON)"
+            exit 1
+          fi
+        env:
+          WIF_PROVIDER: ${{ secrets.GCP_WORKLOAD_IDENTITY_PROVIDER }}
+          SA_KEY: ${{ secrets.GCP_SA_KEY }}
+
+      # Option 1: Workload Identity Federation — no long-lived keys stored in GitHub
+      - name: Authenticate to Google Cloud (Workload Identity Federation)
+        id: auth-wif
+        if: steps.check-auth.outputs.method == 'wif'
         uses: google-github-actions/auth@v2
         with:
           workload_identity_provider: ${{ secrets.GCP_WORKLOAD_IDENTITY_PROVIDER }}
           service_account: ${{ secrets.GCP_SERVICE_ACCOUNT }}
+
+      # Option 2: Service Account Key JSON stored as a GitHub secret
+      - name: Authenticate to Google Cloud (Service Account Key)
+        id: auth-sa
+        if: steps.check-auth.outputs.method == 'sa_key'
+        uses: google-github-actions/auth@v2
+        with:
+          credentials_json: ${{ secrets.GCP_SA_KEY }}
 
       - name: Install Firebase CLI
         run: npm install -g firebase-tools
@@ -77,14 +109,14 @@ jobs:
       - name: Deploy to Firebase Hosting
         run: firebase deploy --only hosting --project oa-ai-dash
         env:
-          GOOGLE_APPLICATION_CREDENTIALS: ${{ steps.auth.outputs.credentials_file_path }}
+          GOOGLE_APPLICATION_CREDENTIALS: ${{ steps.auth-wif.outputs.credentials_file_path || steps.auth-sa.outputs.credentials_file_path }}
 
       - name: Deploy Firestore Rules
         run: firebase deploy --only firestore:rules --project oa-ai-dash
         env:
-          GOOGLE_APPLICATION_CREDENTIALS: ${{ steps.auth.outputs.credentials_file_path }}
+          GOOGLE_APPLICATION_CREDENTIALS: ${{ steps.auth-wif.outputs.credentials_file_path || steps.auth-sa.outputs.credentials_file_path }}
 
       - name: Deploy Database Rules
         run: firebase deploy --only database --project oa-ai-dash
         env:
-          GOOGLE_APPLICATION_CREDENTIALS: ${{ steps.auth.outputs.credentials_file_path }}
+          GOOGLE_APPLICATION_CREDENTIALS: ${{ steps.auth-wif.outputs.credentials_file_path || steps.auth-sa.outputs.credentials_file_path }}

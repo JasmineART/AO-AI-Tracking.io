@@ -163,6 +163,122 @@
           ".validate": "newData.isNumber() || newData.isString()"
         }
       }
+    },
+
+    "company_table": {
+      "$companyId": {
+        ".read": "auth != null",
+        ".write": "auth != null",
+        "id": {
+          ".validate": "newData.isString()"
+        },
+        "name": {
+          ".validate": "newData.isString() && newData.val().length >= 1 && newData.val().length <= 200"
+        },
+        "subscriptionPackage": {
+          ".validate": "newData.isString()"
+        },
+        "status": {
+          ".validate": "newData.isString()"
+        },
+        "updatedAt": {
+          ".validate": "newData.isString() || newData.isNumber()"
+        }
+      }
+    },
+
+    "account_table": {
+      "$companyId": {
+        "$userId": {
+          ".read": "auth != null",
+          ".write": "auth != null",
+          "companyId": {
+            ".validate": "newData.val() == $companyId"
+          },
+          "userId": {
+            ".validate": "newData.val() == $userId"
+          },
+          "email": {
+            ".validate": "newData.isString()"
+          },
+          "name": {
+            ".validate": "newData.isString()"
+          },
+          "role": {
+            ".validate": "newData.isString()"
+          },
+          "permission": {
+            ".validate": "newData.isString()"
+          },
+          "updatedAt": {
+            ".validate": "newData.isString() || newData.isNumber()"
+          }
+        }
+      }
+    },
+
+    "account_by_user": {
+      "$userId": {
+        ".read": "auth != null && auth.uid == $userId",
+        ".write": "auth != null",
+        "companyId": {
+          ".validate": "newData.isString()"
+        },
+        "userId": {
+          ".validate": "newData.val() == $userId"
+        },
+        "email": {
+          ".validate": "newData.isString()"
+        },
+        "name": {
+          ".validate": "newData.isString()"
+        },
+        "role": {
+          ".validate": "newData.isString()"
+        },
+        "permission": {
+          ".validate": "newData.isString()"
+        },
+        "updatedAt": {
+          ".validate": "newData.isString() || newData.isNumber()"
+        }
+      }
+    },
+
+    "project_data": {
+      "$companyId": {
+        "$projectId": {
+          ".read": "auth != null",
+          ".write": "auth != null",
+          "companyId": {
+            ".validate": "newData.val() == $companyId"
+          },
+          "id": {
+            ".validate": "newData.isString()"
+          },
+          "name": {
+            ".validate": "newData.isString() && newData.val().length >= 1"
+          },
+          "type": {
+            ".validate": "newData.isString()"
+          },
+          "status": {
+            ".validate": "newData.isString()"
+          },
+          "owner": {
+            ".validate": "newData.isString()"
+          },
+          "department": {
+            ".validate": "newData.isString()"
+          },
+          "progress": {
+            ".validate": "newData.isNumber() || newData.val() == null"
+          },
+          "updatedAt": {
+            ".validate": "newData.isString() || newData.isNumber()"
+          }
+        }
+      }
     }
   }
 }

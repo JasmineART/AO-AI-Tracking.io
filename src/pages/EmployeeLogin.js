@@ -1,15 +1,14 @@
 import React, { useState, useRef } from 'react';
-import { useNavigate, Link, Navigate } from 'react-router-dom';
+import { useNavigate, Navigate } from 'react-router-dom';
 import { useAuth } from '../contexts/AuthContext';
 import { useToast } from '../contexts/ToastContext';
 import { createLoginRateLimiter } from '../utils/security';
+import { COMPANY_ROLE_LABELS, EMPLOYEE_PORTAL_ROLE_OPTIONS } from '../utils/companyAccounts';
 
-const EMPLOYEE_ROLES = [
-  { value: 'customer_service', label: 'Customer Service' },
-  { value: 'account_manager', label: 'Account Manager' },
-  { value: 'team_lead', label: 'Team Lead' },
-  { value: 'admin', label: 'Administrator' }
-];
+const EMPLOYEE_ROLES = EMPLOYEE_PORTAL_ROLE_OPTIONS.map((role) => ({
+  value: role,
+  label: COMPANY_ROLE_LABELS[role]
+}));
 
 // Pre-configured employee demo credentials
 const EMPLOYEE_CREDENTIALS = {
@@ -47,7 +46,7 @@ const EmployeeLogin = () => {
   const [loading, setLoading] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
 
-  const { signInWithGoogle, signInWithEmail, currentUser, demoLogin, employeeDemoLogin } = useAuth();
+  const { signInWithGoogle, signInWithEmail, currentUser, employeeDemoLogin } = useAuth();
   const { success, error: showError } = useToast();
   const navigate = useNavigate();
   const rateLimiterRef = useRef(createLoginRateLimiter());
@@ -324,18 +323,8 @@ const EmployeeLogin = () => {
           </p>
         </div>
 
-        {/* Footer Links */}
-        <div className="mt-6 text-center space-y-2">
-          <p className="text-blue-300 text-sm">
-            Need an account?{' '}
-            <span className="text-white font-semibold">Contact your administrator</span>
-          </p>
-          <Link
-            to="/"
-            className="inline-block text-blue-400 hover:text-white text-sm transition-colors"
-          >
-            ← Back to Main Site
-          </Link>
+        <div className="mt-6 text-center text-blue-300 text-sm">
+          Need an account? <span className="text-white font-semibold">Contact your administrator</span>
         </div>
       </div>
     </div>

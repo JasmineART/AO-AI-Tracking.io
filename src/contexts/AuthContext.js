@@ -8,6 +8,7 @@ import {
 } from 'firebase/auth';
 import { auth, googleProvider, githubProvider } from '../firebase';
 import { saveUserToRealtimeDb } from '../utils/realtimeDatabase';
+import { associateUserWithCompanyAccount, runOneTimeCompanyBackfill } from '../utils/companyAccounts';
 
 const AuthContext = createContext();
 
@@ -19,6 +20,22 @@ export const AuthProvider = ({ children }) => {
   const [currentUser, setCurrentUser] = useState(null);
   const [loading, setLoading] = useState(true);
   const [authError, setAuthError] = useState(null);
+
+  const enrichUserWithCompanyAccount = (user, preferredRole = 'member') => {
+    if (!user) return null;
+    try {
+      const association = associateUserWithCompanyAccount(user, preferredRole);
+      return {
+        ...user,
+        companyAccountId: association.company?.id || null,
+        companyName: association.company?.name || null,
+        companyRole: association.companyRole || preferredRole
+      };
+    } catch (error) {
+      console.error('Failed to associate user with company account:', error);
+      return user;
+    }
+  };
 
   // Network error handling helper
   const isNetworkError = (error) => {
@@ -171,13 +188,14 @@ export const AuthProvider = ({ children }) => {
 
   // Demo login function
   const demoLogin = () => {
-    const demoUser = {
+    const baseDemoUser = {
       uid: 'demo-user-123',
       email: 'demo@oaitracker.com',
       displayName: 'Demo User',
       photoURL: null,
       isDemo: true
     };
+    const demoUser = enrichUserWithCompanyAccount(baseDemoUser, 'member');
     setCurrentUser(demoUser);
     localStorage.setItem('demoUser', JSON.stringify(demoUser));
     return Promise.resolve(demoUser);
@@ -227,7 +245,10 @@ export const AuthProvider = ({ children }) => {
         employeeId: 'EMP-AD-0001'
       }
     };
-    const demoUser = roleProfiles[role] || roleProfiles.customer_service;
+    const demoUser = enrichUserWithCompanyAccount(
+      roleProfiles[role] || roleProfiles.customer_service,
+      role
+    );
     setCurrentUser(demoUser);
     localStorage.setItem('demoUser', JSON.stringify(demoUser));
     return Promise.resolve(demoUser);
@@ -237,7 +258,13 @@ export const AuthProvider = ({ children }) => {
     // Check for demo user in localStorage
     const storedDemoUser = localStorage.getItem('demoUser');
     if (storedDemoUser) {
-      setCurrentUser(JSON.parse(storedDemoUser));
+      const parsedDemoUser = JSON.parse(storedDemoUser);
+      const enrichedDemoUser = enrichUserWithCompanyAccount(
+        parsedDemoUser,
+        parsedDemoUser.employeeRole || 'member'
+      );
+      setCurrentUser(enrichedDemoUser);
+      localStorage.setItem('demoUser', JSON.stringify(enrichedDemoUser));
       setLoading(false);
       return;
     }
@@ -249,7 +276,7 @@ export const AuthProvider = ({ children }) => {
       }
       // Force auth state check when coming back online
       if (auth.currentUser) {
-        setCurrentUser(auth.currentUser);
+        setCurrentUser(enrichUserWithCompanyAccount(auth.currentUser));
         saveUserToDatabase(auth.currentUser).catch(error => {
           console.error('Error saving user after reconnection:', error);
         });
@@ -272,6 +299,13 @@ export const AuthProvider = ({ children }) => {
         try {
           // Save/update user in database on auth state change
           await saveUserToDatabase(user);
+
+          // One-time backfill for company/account/project tables
+          const backfillResult = await runOneTimeCompanyBackfill(user.uid);
+          if (process.env.NODE_ENV === 'development' && backfillResult.ok && !backfillResult.skipped) {
+            console.log(`✅ Company backfill completed for ${backfillResult.syncedCompanies} companies.`);
+          }
+
           setAuthError(null);
         } catch (error) {
           // Don't fail auth state update if database save fails
@@ -281,7 +315,7 @@ export const AuthProvider = ({ children }) => {
           }
         }
       }
-      setCurrentUser(user);
+      setCurrentUser(enrichUserWithCompanyAccount(user));
       setLoading(false);
     });
 

@@ -151,24 +151,30 @@ const Home = () => {
               <h2 className="text-3xl md:text-4xl font-bold">Employee & Customer Service Portal</h2>
             </div>
             <p className="text-blue-200 text-lg mb-8 max-w-3xl">
-              Internal team members can access the Company Portal for full client profile management, 
-              web and app visitor analytics, and real-time performance monitoring.
+              Internal team members can access the Company Portal to view all ongoing AI and automation
+              projects across the organization, manage user permissions under company accounts, and control
+              subscription package selection based on team size.
             </p>
-            <div className="grid md:grid-cols-3 gap-6 mb-8">
+            <div className="grid md:grid-cols-4 gap-6 mb-8">
               <div className="bg-white/10 backdrop-blur rounded-xl p-5 border border-white/10">
                 <span className="text-2xl block mb-2">👥</span>
                 <h4 className="font-bold text-lg mb-1">Client Profiles</h4>
                 <p className="text-blue-200 text-sm">View and manage all client accounts, contact details, plans, and satisfaction scores.</p>
               </div>
               <div className="bg-white/10 backdrop-blur rounded-xl p-5 border border-white/10">
-                <span className="text-2xl block mb-2">🌐</span>
-                <h4 className="font-bold text-lg mb-1">Visitor Analytics</h4>
-                <p className="text-blue-200 text-sm">Full breakdown of web and app visitors, bounce rates, session times, and conversion data.</p>
+                <span className="text-2xl block mb-2">🚀</span>
+                <h4 className="font-bold text-lg mb-1">Org Project Visibility</h4>
+                <p className="text-blue-200 text-sm">Track the entire organization's ongoing AI and automation projects in one unified view.</p>
               </div>
               <div className="bg-white/10 backdrop-blur rounded-xl p-5 border border-white/10">
-                <span className="text-2xl block mb-2">⚡</span>
-                <h4 className="font-bold text-lg mb-1">Performance Metrics</h4>
-                <p className="text-blue-200 text-sm">Real-time uptime, response times, Lighthouse scores, and live activity monitoring.</p>
+                <span className="text-2xl block mb-2">🔐</span>
+                <h4 className="font-bold text-lg mb-1">User Permissions</h4>
+                <p className="text-blue-200 text-sm">View and change permissions for users associated with each company account.</p>
+              </div>
+              <div className="bg-white/10 backdrop-blur rounded-xl p-5 border border-white/10">
+                <span className="text-2xl block mb-2">💳</span>
+                <h4 className="font-bold text-lg mb-1">Subscription Controls</h4>
+                <p className="text-blue-200 text-sm">Manage Small Team (1-3), Small Business (4-15), and Enterprise Mini (15-50) plans.</p>
               </div>
             </div>
             <div className="flex flex-wrap gap-4">

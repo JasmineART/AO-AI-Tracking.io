@@ -4,6 +4,7 @@ import { AuthProvider } from './contexts/AuthContext';
 import { ToastProvider } from './contexts/ToastContext';
 import { ThemeProvider } from './contexts/ThemeContext';
 import Navbar from './components/Navbar';
+import Footer from './components/Footer';
 import ProtectedRoute from './components/ProtectedRoute';
 import ErrorBoundary from './components/ErrorBoundary';
 import ToastContainer from './components/ToastContainer';
@@ -59,62 +60,65 @@ function App() {
         <ThemeProvider>
           <AuthProvider>
             <ToastProvider>
-              <div className="min-h-screen bg-gray-50 dark:bg-gray-900 transition-colors duration-200">
+              <div className="min-h-screen bg-gray-50 dark:bg-gray-900 transition-colors duration-200 flex flex-col">
                 <Navbar />
                 <ToastContainer />
-                <Routes>
-                  <Route path="/" element={<Home />} />
-                  <Route path="/login" element={<Login />} />
-                  <Route path="/employee-login" element={<EmployeeLogin />} />
-                  <Route
-                    path="/company-portal"
-                    element={
-                      <ProtectedRoute>
-                        <CompanyPortal />
-                      </ProtectedRoute>
-                    }
-                  />
-                  <Route
-                    path="/dashboard"
-                    element={
-                      <ProtectedRoute>
-                        <Dashboard />
-                      </ProtectedRoute>
-                    }
-                  />
-                  <Route
-                    path="/projects"
-                    element={
-                      <ProtectedRoute>
-                        <Projects />
-                      </ProtectedRoute>
-                    }
-                  />
-                  <Route
-                    path="/project/:projectId"
-                    element={
-                      <ProtectedRoute>
-                        <ProjectDetail />
-                      </ProtectedRoute>
-                    }
-                  />
-                  <Route
-                    path="/profile"
-                    element={
-                      <ProtectedRoute>
-                        <Profile />
-                      </ProtectedRoute>
-                    }
-                  />
-                  <Route
-                    path="/system-status"
-                    element={
-                      <ProtectedRoute>
-                        <SystemStatus />
-                      </ProtectedRoute>
-                    }
-                  />
-                </Routes>
+                <main className="flex-1">
+                  <Routes>
+                    <Route path="/" element={<Home />} />
+                    <Route path="/login" element={<Login />} />
+                    <Route path="/employee-login" element={<EmployeeLogin />} />
+                    <Route
+                      path="/company-portal"
+                      element={
+                        <ProtectedRoute>
+                          <CompanyPortal />
+                        </ProtectedRoute>
+                      }
+                    />
+                    <Route
+                      path="/dashboard"
+                      element={
+                        <ProtectedRoute>
+                          <Dashboard />
+                        </ProtectedRoute>
+                      }
+                    />
+                    <Route
+                      path="/projects"
+                      element={
+                        <ProtectedRoute>
+                          <Projects />
+                        </ProtectedRoute>
+                      }
+                    />
+                    <Route
+                      path="/project/:projectId"
+                      element={
+                        <ProtectedRoute>
+                          <ProjectDetail />
+                        </ProtectedRoute>
+                      }
+                    />
+                    <Route
+                      path="/profile"
+                      element={
+                        <ProtectedRoute>
+                          <Profile />
+                        </ProtectedRoute>
+                      }
+                    />
+                    <Route
+                      path="/system-status"
+                      element={
+                        <ProtectedRoute>
+                          <SystemStatus />
+                        </ProtectedRoute>
+                      }
+                    />
+                  </Routes>
+                </main>
+                <Footer />
               </div>
             </ToastProvider>
           </AuthProvider>
