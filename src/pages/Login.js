@@ -160,26 +160,26 @@ const Login = () => {
 
       <div className="bg-white/95 backdrop-blur-xl rounded-3xl shadow-2xl p-8 w-full max-w-md relative z-10 border border-white/50 animate-scaleIn">
         <div className="text-center mb-8">
-          <div className="inline-block p-4 bg-gradient-to-br from-indigo-600 to-purple-600 rounded-2xl mb-4 shadow-lg transform hover:scale-110 transition-transform duration-300">
-            <span className="text-4xl">🤖</span>
+            <div className="inline-block p-4 bg-gradient-to-br from-indigo-600 to-purple-600 rounded-2xl mb-4 shadow-lg transform hover:scale-110 transition-transform duration-300">
+            <span className="text-4xl">OA</span>
           </div>
           <h1 className="text-3xl font-bold mb-2">
             <span className="gradient-text">{isSignUp ? 'Create Account' : 'Welcome Back'}</span>
           </h1>
           <p className="text-gray-600">
-            {isSignUp ? 'Join the AI revolution today' : 'Continue your AI journey'}
+            {isSignUp ? 'Create your account' : 'Welcome back'}
           </p>
         </div>
 
-        {error && (
-          <div className="bg-red-50 border-l-4 border-red-500 text-red-700 px-4 py-3 rounded-lg mb-4 animate-fadeInDown shadow-md">
-            <p className="font-medium">⚠️ {error}</p>
-          </div>
-        )}
+          {error && (
+            <div className="bg-red-50 border-l-4 border-red-500 text-red-700 px-4 py-3 rounded-lg mb-4 animate-fadeInDown shadow-md">
+              <p className="font-medium">{error}</p>
+            </div>
+          )}
 
         {rateLimitError && (
           <div className="bg-orange-50 border-l-4 border-orange-500 text-orange-700 px-4 py-3 rounded-lg mb-4 animate-fadeInDown shadow-md">
-            <p className="font-medium">🔒 {rateLimitError}</p>
+            <p className="font-medium">{rateLimitError}</p>
           </div>
         )}
 
@@ -189,7 +189,7 @@ const Login = () => {
           disabled={loading}
           className="w-full bg-gradient-to-r from-purple-600 to-pink-600 text-white py-4 rounded-xl font-bold mb-4 hover:from-purple-700 hover:to-pink-700 transition-all duration-300 disabled:opacity-50 shadow-lg hover:shadow-xl hover:-translate-y-1 transform flex items-center justify-center gap-2"
         >
-          <span className="text-xl">🎮</span> Try Demo Account
+          <span className="text-xl">Demo</span> Try Demo Account
         </button>
 
         <div className="relative mb-6">
@@ -232,11 +232,10 @@ const Login = () => {
         {/* Database Info Notice */}
         <div className="mb-6 bg-gradient-to-r from-blue-50 to-indigo-50 border-2 border-blue-200 rounded-xl p-4">
           <div className="flex items-start gap-3">
-            <span className="text-2xl">💾</span>
             <div>
               <p className="font-semibold text-blue-900 mb-1">Your Data is Secure</p>
               <p className="text-sm text-blue-700">
-                All account information is automatically saved to our secure Firebase Realtime Database and protected by Google Cloud security.
+                All account information is saved to our secure Firebase Realtime Database and protected by Google Cloud security.
               </p>
             </div>
           </div>
@@ -302,12 +301,12 @@ const Login = () => {
             </div>
           </div>
 
-          <button
+                <button
             type="submit"
             disabled={loading}
             className="w-full bg-gradient-to-r from-indigo-600 to-purple-600 text-white py-4 rounded-xl font-bold hover:from-indigo-700 hover:to-purple-700 transition-all duration-300 disabled:opacity-50 shadow-lg hover:shadow-xl hover:-translate-y-1 transform"
           >
-            {loading ? '⏳ Please wait...' : (isSignUp ? '🚀 Create Account' : '🔓 Sign In')}
+            {loading ? 'Please wait...' : (isSignUp ? 'Create Account' : 'Sign In')}
           </button>
         </form>
 

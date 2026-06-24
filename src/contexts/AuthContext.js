@@ -69,7 +69,7 @@ export const AuthProvider = ({ children }) => {
     try {
       await saveUserToRealtimeDb(user);
     } catch (error) {
-      console.error('❌ Error saving user to database:', error);
+      console.error('Error saving user to database:', error);
       throw error;
     }
   };
@@ -181,7 +181,7 @@ export const AuthProvider = ({ children }) => {
       setCurrentUser(null);
       return Promise.resolve();
     } catch (error) {
-      console.error('\u274c Error during sign out:', error);
+      console.error('Error during sign out:', error);
       throw error;
     }
   };
@@ -272,7 +272,7 @@ export const AuthProvider = ({ children }) => {
     // Monitor network connectivity and attempt to recover auth state
     const handleOnline = () => {
       if (process.env.NODE_ENV === 'development') {
-        console.log('✅ Network reconnected, auth state will be restored');
+        console.log('Network reconnected, auth state will be restored');
       }
       // Force auth state check when coming back online
       if (auth.currentUser) {
@@ -285,7 +285,7 @@ export const AuthProvider = ({ children }) => {
 
     const handleOffline = () => {
       if (process.env.NODE_ENV === 'development') {
-        console.log('⚠️ Network disconnected, auth state preserved locally');
+        console.log('Network disconnected, auth state preserved locally');
       }
       setAuthError(new Error('You are currently offline. Some features may be limited.'));
     };
@@ -303,7 +303,7 @@ export const AuthProvider = ({ children }) => {
           // One-time backfill for company/account/project tables
           const backfillResult = await runOneTimeCompanyBackfill(user.uid);
           if (process.env.NODE_ENV === 'development' && backfillResult.ok && !backfillResult.skipped) {
-            console.log(`✅ Company backfill completed for ${backfillResult.syncedCompanies} companies.`);
+            console.log(`Company backfill completed for ${backfillResult.syncedCompanies} companies.`);
           }
 
           setAuthError(null);

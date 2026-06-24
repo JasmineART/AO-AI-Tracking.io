@@ -176,8 +176,8 @@ const apiKey = process.env.REACT_APP_FIREBASE_API_KEY;
 ### After Fix:
 ```javascript
 // Webpack replaces process.env with actual values:
-const apiKey = "AIzaSyCzyBwFrRvqoMcspj7lIYpiR3nRa7Bcy00";
-// ✅ Works perfectly
+const apiKey = "REDACTED_API_KEY";
+// ✅ Works with environment-provided API key
 ```
 
 ---

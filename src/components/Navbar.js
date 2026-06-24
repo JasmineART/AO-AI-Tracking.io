@@ -44,7 +44,7 @@ const Navbar = () => {
     try {
       // AuthContext logout() handles all cleanup including demo state
       await logout();
-      success('Successfully logged out. See you soon! 👋');
+      success('Successfully logged out. See you soon!');
       navigate('/');
     } catch (error) {
       console.error('Failed to logout:', error);
@@ -146,7 +146,7 @@ const Navbar = () => {
           {/* ========== Logo / Branding ========== */}
           <Link to="/" className="flex items-center gap-3 group">
             <div className="w-10 h-10 bg-gradient-to-br from-indigo-600 to-purple-600 rounded-xl flex items-center justify-center shadow-lg transform group-hover:scale-110 transition-transform duration-300">
-              <span className="text-2xl">🤖</span>
+              <span className="text-2xl">OA</span>
             </div>
             <span className="text-xl font-extrabold bg-gradient-to-r from-indigo-600 to-purple-600 bg-clip-text text-transparent">
               OA AI Tracker

@@ -14,25 +14,25 @@ const EMPLOYEE_ROLES = EMPLOYEE_PORTAL_ROLE_OPTIONS.map((role) => ({
 const EMPLOYEE_CREDENTIALS = {
   customer_service: {
     email: 'cs.agent@oaitracker.com',
-    password: 'CSPortal2026!',
+    password: '',
     name: 'Jordan Rivera',
     id: 'EMP-CS-1042'
   },
   account_manager: {
     email: 'am.lead@oaitracker.com',
-    password: 'AMPortal2026!',
+    password: '',
     name: 'Taylor Morgan',
     id: 'EMP-AM-2085'
   },
   team_lead: {
     email: 'team.lead@oaitracker.com',
-    password: 'TLPortal2026!',
+    password: '',
     name: 'Alex Chen',
     id: 'EMP-TL-3011'
   },
   admin: {
     email: 'admin@oaitracker.com',
-    password: 'AdminPortal2026!',
+    password: '',
     name: 'Sam Patel',
     id: 'EMP-AD-0001'
   }
@@ -164,7 +164,7 @@ const EmployeeLogin = () => {
         {/* Header */}
         <div className="text-center mb-8">
           <div className="inline-flex items-center justify-center w-16 h-16 bg-gradient-to-br from-blue-500 to-indigo-600 rounded-2xl shadow-2xl mb-4">
-            <span className="text-3xl">🏢</span>
+            <span className="text-3xl">EP</span>
           </div>
           <h1 className="text-3xl font-extrabold text-white mb-2">Employee Portal</h1>
           <p className="text-blue-200 text-sm">
@@ -235,8 +235,9 @@ const EmployeeLogin = () => {
                   onClick={() => setShowPassword(!showPassword)}
                   className="absolute right-3 top-1/2 -translate-y-1/2 text-blue-300 hover:text-white transition-colors"
                   tabIndex={-1}
+                  aria-label={showPassword ? 'Hide password' : 'Show password'}
                 >
-                  {showPassword ? '🙈' : '👁️'}
+                  {showPassword ? 'Hide' : 'Show'}
                 </button>
               </div>
             </div>

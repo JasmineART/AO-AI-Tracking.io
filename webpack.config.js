@@ -69,7 +69,7 @@ module.exports = {
     }),
     new webpack.DefinePlugin({
       // NODE_ENV is automatically set by webpack based on --mode flag, so we don't redefine it here
-      'process.env.REACT_APP_FIREBASE_API_KEY': JSON.stringify(process.env.REACT_APP_FIREBASE_API_KEY || 'AIzaSyCzyBwFrRvqoMcspj7lIYpiR3nRa7Bcy00'),
+      'process.env.REACT_APP_FIREBASE_API_KEY': JSON.stringify(process.env.REACT_APP_FIREBASE_API_KEY || ''),
       'process.env.REACT_APP_FIREBASE_AUTH_DOMAIN': JSON.stringify(process.env.REACT_APP_FIREBASE_AUTH_DOMAIN || 'oa-ai-dash.firebaseapp.com'),
       'process.env.REACT_APP_FIREBASE_DATABASE_URL': JSON.stringify(process.env.REACT_APP_FIREBASE_DATABASE_URL || 'https://oa-ai-dash-default-rtdb.firebaseio.com'),
       'process.env.REACT_APP_FIREBASE_PROJECT_ID': JSON.stringify(process.env.REACT_APP_FIREBASE_PROJECT_ID || 'oa-ai-dash'),

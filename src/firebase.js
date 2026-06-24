@@ -9,7 +9,7 @@ import { getAnalytics } from 'firebase/analytics';
 // as they only identify your Firebase project. Security is enforced
 // through Firebase Security Rules on the backend.
 const firebaseConfig = {
-  apiKey: process.env.REACT_APP_FIREBASE_API_KEY || "AIzaSyCzyBwFrRvqoMcspj7lIYpiR3nRa7Bcy00",
+  apiKey: process.env.REACT_APP_FIREBASE_API_KEY || "",
   authDomain: process.env.REACT_APP_FIREBASE_AUTH_DOMAIN || "oa-ai-dash.firebaseapp.com",
   databaseURL: process.env.REACT_APP_FIREBASE_DATABASE_URL || "https://oa-ai-dash-default-rtdb.firebaseio.com",
   projectId: process.env.REACT_APP_FIREBASE_PROJECT_ID || "oa-ai-dash",

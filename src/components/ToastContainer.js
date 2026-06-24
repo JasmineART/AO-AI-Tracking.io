@@ -28,26 +28,26 @@ const Toast = ({ id, message, type, duration }) => {
       case 'success':
         return {
           bg: 'bg-gradient-to-r from-green-500 to-emerald-500',
-          icon: '✅',
+          icon: 'Success',
           border: 'border-green-400',
         };
       case 'error':
         return {
           bg: 'bg-gradient-to-r from-red-500 to-rose-500',
-          icon: '❌',
+          icon: 'Error',
           border: 'border-red-400',
         };
       case 'warning':
         return {
           bg: 'bg-gradient-to-r from-yellow-500 to-orange-500',
-          icon: '⚠️',
+          icon: 'Warning',
           border: 'border-yellow-400',
         };
       case 'info':
       default:
         return {
           bg: 'bg-gradient-to-r from-blue-500 to-indigo-500',
-          icon: 'ℹ️',
+          icon: 'Info',
           border: 'border-blue-400',
         };
     }
@@ -79,7 +79,7 @@ const Toast = ({ id, message, type, duration }) => {
       `}
       onClick={handleClose}
     >
-      <span className="text-2xl">{styles.icon}</span>
+      <span className="text-sm font-semibold uppercase">{styles.icon}</span>
       <p className="flex-1 font-semibold text-sm leading-relaxed">{message}</p>
       <button
         onClick={(e) => {
